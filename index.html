@@ -1,0 +1,1337 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Common Room Lab</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: a floor-plan stage with its log and scoreboard on the left, a case-sheet control panel on the right; everything stacks on phones. */
+:root{
+  --bg:#EDF1EF; --surface:#FFFFFF; --surface-2:#F4F7F5; --ink:#16232A; --muted:#566A70; --line:#D2DCD8;
+  --accent:#2950B8; --accent-ink:#FFFFFF;
+  --floor:#E3EAE5; --floor-grid:#D4DED8; --wall:#28383F; --furn:#FAFCFB; --furn-line:#7A8D90; --rug:#D8E2EC;
+  --sofa:#C9D5DE; --board:#FFFFFF; --head:#FFFFFF; --bubble:#FFFFFF; --bubble-ink:#16232A;
+  --t-spatial:#2C7FC4; --t-field:#5A55D2; --t-motor:#D2701F; --t-attention:#B38D0B; --t-language:#CF4A86; --t-planning:#2A9566; --t-memory:#8C52C6; --t-support:#4D7C8A; --t-done:#2950B8;
+  --f-display:"Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --f-body:"Atkinson Hyperlegible", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --f-mono:"JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0E1417; --surface:#162026; --surface-2:#1B272E; --ink:#E2EBE9; --muted:#93A6AA; --line:#2A3840;
+    --accent:#88A8FF; --accent-ink:#0E1417;
+    --floor:#1A2428; --floor-grid:#223035; --wall:#A3B6BB; --furn:#26343B; --furn-line:#6F878D; --rug:#1F2B36;
+    --sofa:#2E3E4A; --board:#D9E3E6; --head:#E6EDEF; --bubble:#24333B; --bubble-ink:#EAF1EF;
+    --t-spatial:#5AA6E8; --t-field:#8F8BF0; --t-motor:#EE9450; --t-attention:#E0BC3A; --t-language:#EC79AC; --t-planning:#4CC08B; --t-memory:#B38AEB; --t-support:#79AEBB; --t-done:#88A8FF;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0E1417; --surface:#162026; --surface-2:#1B272E; --ink:#E2EBE9; --muted:#93A6AA; --line:#2A3840;
+  --accent:#88A8FF; --accent-ink:#0E1417;
+  --floor:#1A2428; --floor-grid:#223035; --wall:#A3B6BB; --furn:#26343B; --furn-line:#6F878D; --rug:#1F2B36;
+  --sofa:#2E3E4A; --board:#D9E3E6; --head:#E6EDEF; --bubble:#24333B; --bubble-ink:#EAF1EF;
+  --t-spatial:#5AA6E8; --t-field:#8F8BF0; --t-motor:#EE9450; --t-attention:#E0BC3A; --t-language:#EC79AC; --t-planning:#4CC08B; --t-memory:#B38AEB; --t-support:#79AEBB; --t-done:#88A8FF;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body{margin:0}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.5}
+.app{max-width:1480px;margin:0 auto;padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));padding-block:22px 48px}
+header.top{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:10px 28px;margin-bottom:18px}
+h1{font-family:var(--f-display);font-weight:700;font-size:clamp(28px,3.4vw,40px);letter-spacing:-0.025em;line-height:1.05;margin:0;text-wrap:balance}
+.lede{max-width:64ch;color:var(--muted);margin:6px 0 0}
+.scale-note{font-family:var(--f-mono);font-size:12px;color:var(--muted);letter-spacing:.02em}
+.layout{display:grid;grid-template-columns:minmax(0,1fr) 390px;gap:20px;align-items:start}
+.col{display:flex;flex-direction:column;gap:20px;min-width:0}
+@media (max-width:1100px){.layout{grid-template-columns:minmax(0,1fr)}}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;min-width:0}
+.card-h{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 12px;padding:12px 14px;border-bottom:1px solid var(--line)}
+.card-h h2{font-family:var(--f-display);font-weight:700;font-size:17px;margin:0;letter-spacing:-0.01em}
+.card-b{padding:14px}
+.toolbar{display:flex;flex-wrap:wrap;gap:8px 10px;align-items:center;padding:10px 12px;border-bottom:1px solid var(--line)}
+.toolbar .spacer{flex:1 1 auto}
+.clock{font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-size:13px;color:var(--muted);min-width:64px}
+.btn{font:700 13px/1 var(--f-body);border:1px solid var(--line);background:var(--surface-2);color:var(--ink);border-radius:6px;padding:8px 11px;cursor:pointer;white-space:nowrap}
+.btn:hover{border-color:var(--furn-line)}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:transparent}
+.btn.ghost{background:transparent}
+.btn.danger{color:var(--t-language)}
+.btn[disabled]{opacity:.45;cursor:not-allowed}
+.btn:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visible,canvas:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.seg button{font:600 12px/1 var(--f-mono);background:var(--surface-2);color:var(--muted);border:0;border-right:1px solid var(--line);padding:8px 9px;cursor:pointer}
+.seg button:last-child{border-right:0}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--surface)}
+.check{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--ink);cursor:pointer}
+.check input{accent-color:var(--accent);width:15px;height:15px}
+select{font:600 13px var(--f-body);background:var(--surface-2);color:var(--ink);border:1px solid var(--line);border-radius:6px;padding:6px 8px}
+.stage-scroll{overflow-x:auto}
+.stage{min-width:660px}
+canvas#room{display:block;width:100%;aspect-ratio:960/600;max-width:100%;cursor:pointer;background:var(--floor)}
+.stage-foot{display:flex;flex-wrap:wrap;gap:6px 14px;padding:10px 14px;border-top:1px solid var(--line);font-size:12px;color:var(--muted)}
+.legend-item{display:inline-flex;align-items:center;gap:6px}
+.sw{display:inline-block;width:10px;height:10px;border-radius:3px;flex:none}
+.lower{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:20px}
+@media (max-width:900px){.lower{grid-template-columns:minmax(0,1fr)}}
+.log{list-style:none;margin:0;padding:6px 0;height:330px;overflow-y:auto;font-size:13px}
+.log li{display:grid;grid-template-columns:44px minmax(0,1fr);gap:8px;padding:5px 14px;border-bottom:1px dashed var(--line)}
+.log li:last-child{border-bottom:0}
+.log time{font-family:var(--f-mono);font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums;padding-top:2px}
+.log .who{font-weight:700}
+.log .quote{font-style:italic}
+.tag{display:inline-block;font:600 10px/1 var(--f-mono);letter-spacing:.06em;text-transform:uppercase;padding:3px 5px 2px;border-radius:3px;margin-right:6px;color:var(--surface);vertical-align:1px}
+.empty{color:var(--muted);padding:14px}
+.table-wrap{overflow-x:auto}
+table.score{border-collapse:collapse;width:100%;font-size:13px;font-variant-numeric:tabular-nums}
+table.score th{font:600 10px/1.2 var(--f-mono);letter-spacing:.05em;text-transform:uppercase;color:var(--muted);text-align:right;padding:8px 8px;border-bottom:1px solid var(--line);white-space:nowrap}
+table.score th:first-child,table.score td:first-child{text-align:left}
+table.score td{padding:8px 8px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
+table.score tr:last-child td{border-bottom:0}
+table.score td.zero{color:var(--muted);opacity:.55}
+table.score th .sw{width:8px;height:8px;margin-right:3px;vertical-align:0}
+.namecell{display:inline-flex;align-items:center;gap:7px;font-weight:700}
+.dot{display:inline-block;width:12px;height:12px;border-radius:50%;flex:none}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{display:inline-flex;align-items:center;gap:8px;padding:7px 10px 7px 8px;border:1px solid var(--line);background:var(--surface-2);border-radius:999px;cursor:pointer;color:var(--ink);font:700 13px/1.1 var(--f-body);text-align:left}
+.chip small{display:block;font:400 11px/1.2 var(--f-body);color:var(--muted)}
+.chip[aria-pressed="true"]{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
+.who-row{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+.name-input{font:700 20px var(--f-display);letter-spacing:-0.01em;color:var(--ink);background:transparent;border:1px solid transparent;border-radius:6px;padding:2px 6px;margin-left:-6px;width:9.5em;min-width:0}
+.name-input:hover{border-color:var(--line)}
+.pill{font:600 10px/1 var(--f-mono);letter-spacing:.06em;text-transform:uppercase;padding:4px 7px;border-radius:999px;background:var(--surface-2);border:1px solid var(--line);color:var(--muted);margin-left:auto;white-space:nowrap}
+.doing{font-size:14px;margin:0 0 8px;min-height:2.6em}
+.plan-box{background:var(--surface-2);border:1px solid var(--line);border-radius:8px;padding:10px 12px;margin-bottom:16px}
+.plan-box h3{font:600 10px/1 var(--f-mono);letter-spacing:.07em;text-transform:uppercase;color:var(--muted);margin:0 0 8px}
+.plan{margin:0;padding-left:20px;font-size:13px}
+.plan li.cur{font-weight:700}
+.plan li.off{color:var(--t-planning)}
+.plan .done{color:var(--muted);font-size:12px;margin-top:6px}
+.sliders{display:flex;flex-direction:column;gap:12px}
+.slider-head{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.slider-head label{font-weight:700;font-size:14px;display:inline-flex;align-items:center;gap:7px}
+.slider-head output{font:600 12px var(--f-mono);color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+.slider input[type=range]{width:100%;margin:4px 0 0}
+.hint{margin:0;font-size:12px;color:var(--muted);line-height:1.4}
+.row-btns{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.sub{font:600 11px/1 var(--f-mono);letter-spacing:.07em;text-transform:uppercase;color:var(--muted);margin:20px 0 8px}
+.task-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+.task-grid .btn{white-space:normal;text-align:left;line-height:1.2}
+.supports{display:flex;flex-direction:column;gap:10px}
+.support{display:grid;grid-template-columns:18px minmax(0,1fr);gap:4px 8px;align-items:start;cursor:pointer}
+.support input{accent-color:var(--accent);width:16px;height:16px;margin:2px 0 0}
+.support b{font-size:14px}
+.support span{grid-column:2;font-size:12px;color:var(--muted);line-height:1.4}
+.model{margin-top:20px}
+.model-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:12px}
+.rule{border:1px solid var(--line);border-radius:8px;padding:12px 14px;background:var(--surface-2);min-width:0}
+.rule h3{display:flex;align-items:center;gap:8px;font:700 15px var(--f-display);margin:0 0 6px}
+.rule p{margin:0;font-size:13px;line-height:1.5}
+.rule code{font:12px var(--f-mono)}
+.disclaimer{max-width:80ch;color:var(--muted);font-size:13px;margin:14px 0 0}
+.muted{color:var(--muted)}
+@media (prefers-reduced-motion: reduce){*{scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <header class="top">
+    <div>
+      <h1>Common Room Lab</h1>
+      <p class="lede">Up to six people share a kitchen-lounge, chat, and get on with everyday jobs. Give each of them a different mix of perceptual, motor and cognitive difficulties, then watch how their routes, conversations and plans change.</p>
+    </div>
+    <div class="scale-note">Floor plan ≈ 11.6 × 7.1 m · grid square = 0.5 m</div>
+  </header>
+
+  <div class="layout">
+    <div class="col">
+      <section class="card" aria-label="Room simulation">
+        <div class="toolbar">
+          <button class="btn primary" id="playBtn" type="button">Pause</button>
+          <div class="seg" role="group" aria-label="Simulation speed">
+            <button type="button" data-speed="0.5" aria-pressed="false">0.5×</button>
+            <button type="button" data-speed="1" aria-pressed="true">1×</button>
+            <button type="button" data-speed="2" aria-pressed="false">2×</button>
+            <button type="button" data-speed="4" aria-pressed="false">4×</button>
+          </div>
+          <span class="clock" id="clock" aria-live="off">00:00</span>
+          <span class="spacer"></span>
+          <label class="check"><input type="checkbox" id="overlayChk" checked> Show what the selected person perceives</label>
+          <label class="check"><input type="checkbox" id="pathsChk"> All routes</label>
+        </div>
+        <div class="toolbar">
+          <label for="allTask" class="muted" style="font-size:13px">Compare everyone on one job:</label>
+          <select id="allTask"></select>
+          <button class="btn" id="allGo" type="button">Everyone starts</button>
+          <span class="spacer"></span>
+          <button class="btn ghost" id="restartBtn" type="button">Restart room</button>
+        </div>
+        <div class="stage-scroll"><div class="stage"><canvas id="room" tabindex="0" aria-label="Top-down view of the shared room. Click a person to select them."></canvas></div></div>
+        <div class="stage-foot" id="legend"></div>
+      </section>
+
+      <div class="lower">
+        <section class="card">
+          <div class="card-h">
+            <h2>What happened</h2>
+            <div class="seg" role="group" aria-label="Filter the log">
+              <button type="button" data-filter="all" aria-pressed="true">All</button>
+              <button type="button" data-filter="events" aria-pressed="false">Difficulties</button>
+              <button type="button" data-filter="selected" aria-pressed="false">Selected</button>
+            </div>
+          </div>
+          <ul class="log" id="log" aria-live="off"></ul>
+        </section>
+        <section class="card">
+          <div class="card-h"><h2>Scoreboard</h2><button class="btn ghost" id="clearStats" type="button">Clear scores</button></div>
+          <div class="table-wrap"><table class="score" id="score"></table></div>
+          <p class="hint" style="padding:0 14px 14px">Counts are moments where a difficulty changed behaviour. Avg time is per finished job, in simulated minutes:seconds.</p>
+        </section>
+      </div>
+    </div>
+
+    <aside class="col">
+      <section class="card">
+        <div class="card-h"><h2>People in the room</h2><button class="btn" id="addBtn" type="button">Add person</button></div>
+        <div class="card-b"><div class="chips" id="chips"></div></div>
+        <div class="card-b" style="border-top:1px solid var(--line)" id="editor"></div>
+      </section>
+      <section class="card">
+        <div class="card-h"><h2>Room supports</h2></div>
+        <div class="card-b supports" id="supports"></div>
+      </section>
+    </aside>
+  </div>
+
+  <section class="card model">
+    <div class="card-h"><h2>How the model works</h2><span class="scale-note">Every rule below runs locally in this page</span></div>
+    <div class="card-b">
+      <div class="model-grid" id="rules"></div>
+      <p class="disclaimer">These are deliberately simple teaching models built from rules and dice rolls. They are not clinical descriptions of any condition. Real people adapt, use strategies, and vary from day to day. The point is to see how a single difficulty ripples through an ordinary task, and how small changes to the room can soften it.</p>
+    </div>
+  </section>
+</div>
+
+<script>
+(() => {
+'use strict';
+const W = 960, H = 600, CELL = 20, GW = W / CELL, GH = H / CELL, R = 12, PX_PER_M = 80;
+const IN = { x0: 16, y0: 16, x1: 944, y1: 584 };
+const rnd = Math.random;
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const pick = a => a[Math.floor(rnd() * a.length)];
+const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
+const fill = (s, v) => s.replace(/\{(\w+)\}/g, (m, k) => (v[k] ?? m));
+const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const angDiff = (a, b) => { let d = a - b; while (d > Math.PI) d -= 2 * Math.PI; while (d < -Math.PI) d += 2 * Math.PI; return d; };
+const fmt = t => { t = Math.max(0, Math.round(t)); return String(Math.floor(t / 60)).padStart(2, '0') + ':' + String(t % 60).padStart(2, '0'); };
+const $ = s => document.querySelector(s);
+
+// ---------- Definitions ----------
+const IMPS = [
+  { k: 'spatial', short: 'Spatial', label: 'Spatial perception', desc: 'Misjudges where things are and how much room there is around furniture.' },
+  { k: 'field', short: 'Visual field', label: 'Visual field (left side)', desc: 'Tends not to notice things on their left, and turns right to search.' },
+  { k: 'motor', short: 'Movement', label: 'Movement', desc: 'Slower, less steady walking. Hand tasks take longer and can slip.' },
+  { k: 'attention', short: 'Attention', label: 'Attention', desc: 'Voices and things around the room pull them off task.' },
+  { k: 'language', short: 'Language', label: 'Language', desc: 'Word-finding pauses and swapped words. May misunderstand others.' },
+  { k: 'planning', short: 'Planning', label: 'Planning', desc: 'Puts steps in the wrong order or skips them, then has to backtrack.' },
+  { k: 'memory', short: 'Memory', label: 'Memory', desc: 'Loses track of the goal, repeats finished steps, forgets names.' }
+];
+const TAGS = { spatial: 'Spatial', field: 'Visual field', motor: 'Movement', attention: 'Attention', language: 'Language', planning: 'Planning', memory: 'Memory', support: 'Support', done: 'Done' };
+
+const TASKS = {
+  tea: { name: 'Make tea', phrase: 'make a cup of tea', gerund: 'making tea', w: 3, steps: [
+    { st: 'cupboard', verb: 'take a cup', gives: 'cup', dur: 2, obj: 'cup' },
+    { st: 'sink', verb: 'fill the kettle', gives: 'water', dur: 2.5, obj: 'kettle' },
+    { st: 'kettle', verb: 'boil the water', needs: ['water'], gives: 'hot', dur: 3.5, obj: 'kettle' },
+    { st: 'kettle', verb: 'pour the tea', needs: ['hot', 'cup'], gives: 'tea', dur: 2, obj: 'cup' },
+    { st: 'table', verb: 'put the tea on the table', needs: ['tea'], dur: 1.5, obj: 'tea' } ] },
+  plant: { name: 'Water the plant', phrase: 'water the plant', gerund: 'watering the plant', w: 2, steps: [
+    { st: 'sink', verb: 'fill the watering can', gives: 'can', dur: 2.2, obj: 'watering can' },
+    { st: 'plant', verb: 'water the plant', needs: ['can'], dur: 3, obj: 'watering can' } ] },
+  book: { name: 'Shelve a book', phrase: 'put a book away', gerund: 'tidying up the books', w: 2, steps: [
+    { st: 'table', verb: 'pick up a book', gives: 'book', dur: 1.5, obj: 'book' },
+    { st: 'shelf', verb: 'put the book on the shelf', needs: ['book'], dur: 2.5, obj: 'book' } ] },
+  note: { name: 'Write a note', phrase: 'write the shopping list', gerund: 'writing the shopping list', w: 2, steps: [
+    { st: 'cupboard', verb: 'find a marker', gives: 'marker', dur: 2, obj: 'marker' },
+    { st: 'board', verb: 'write the shopping list', needs: ['marker'], dur: 4, obj: 'marker' } ] },
+  setTable: { name: 'Set the table', phrase: 'set the table', gerund: 'setting the table', w: 2, steps: [
+    { st: 'cupboard', verb: 'take the plates', gives: 'plates', dur: 2, obj: 'plates' },
+    { st: 'table', verb: 'lay out the plates', needs: ['plates'], gives: 'laid', dur: 2.5, obj: 'plates' },
+    { st: 'cupboard', verb: 'take the cutlery', gives: 'cutlery', dur: 1.5, obj: 'cutlery' },
+    { st: 'table', verb: 'lay out the cutlery', needs: ['cutlery', 'laid'], dur: 2.5, obj: 'cutlery' } ] },
+  mail: { name: 'Sort the mail', phrase: 'sort the mail', gerund: 'sorting the mail', w: 2, steps: [
+    { st: 'door', verb: 'collect the mail', gives: 'mail', dur: 1.8, obj: 'mail' },
+    { st: 'table', verb: 'sort the mail', needs: ['mail'], dur: 3.5, obj: 'mail' } ] },
+  rest: { name: 'Take a break', phrase: 'sit down for a bit', gerund: 'taking a break', w: 1, steps: [
+    { st: 'sofa', verb: 'sit and rest', dur: 6, obj: 'cushion' } ] }
+};
+const CARRY = new Set(['cup', 'tea', 'book', 'marker', 'plates', 'cutlery', 'mail', 'can']);
+
+const STATIONS = {
+  cupboard: { x: 70, y: 118, label: 'cupboard', face: -Math.PI / 2, cap: 1 },
+  sink: { x: 180, y: 118, label: 'sink', face: -Math.PI / 2, cap: 1 },
+  kettle: { x: 295, y: 118, label: 'kettle', face: -Math.PI / 2, cap: 1 },
+  board: { x: 630, y: 58, label: 'whiteboard', face: -Math.PI / 2, cap: 1 },
+  shelf: { x: 866, y: 220, label: 'bookshelf', face: 0, cap: 1 },
+  table: { x: 495, y: 226, label: 'table', face: Math.PI / 2, cap: 2 },
+  sofa: { x: 145, y: 470, label: 'sofa', face: Math.PI / 2, cap: 2 },
+  plant: { x: 838, y: 528, label: 'plant', face: 0, cap: 1 },
+  door: { x: 48, y: 300, label: 'door', face: Math.PI, cap: 1 }
+};
+for (const k in STATIONS) STATIONS[k].users = new Set();
+
+const FIXED = [
+  { id: 'counter', x: 16, y: 16, w: 344, h: 70, label: 'counter' },
+  { id: 'board', x: 520, y: 16, w: 220, h: 12, label: 'wall' },
+  { id: 'shelf', x: 898, y: 110, w: 46, h: 220, label: 'bookshelf' },
+  { id: 'table', x: 400, y: 250, w: 190, h: 110, label: 'table' },
+  { id: 'chairW', x: 368, y: 288, w: 26, h: 34, label: 'chair' },
+  { id: 'chairE', x: 596, y: 288, w: 26, h: 34, label: 'chair' },
+  { id: 'chairS1', x: 428, y: 366, w: 32, h: 24, label: 'chair' },
+  { id: 'chairS2', x: 530, y: 366, w: 32, h: 24, label: 'chair' },
+  { id: 'sofa', x: 40, y: 504, w: 210, h: 80, label: 'sofa' },
+  { id: 'coffee', x: 100, y: 396, w: 90, h: 40, label: 'coffee table' },
+  { id: 'plant', x: 872, y: 500, w: 56, h: 56, label: 'plant pot' }
+];
+const CLUTTER = [
+  { id: 'basket', x: 300, y: 430, w: 50, h: 40, label: 'laundry basket' },
+  { id: 'box', x: 700, y: 170, w: 40, h: 36, label: 'box' },
+  { id: 'bag', x: 650, y: 470, w: 38, h: 30, label: 'bag' }
+];
+const POIS = [
+  { x: 830, y: 40, label: 'something outside the window' },
+  { x: 880, y: 520, label: 'the plant' },
+  { x: 630, y: 40, label: 'the whiteboard' },
+  { x: 30, y: 300, label: 'a noise at the door' },
+  { x: 495, y: 300, label: 'something on the table' }
+];
+const SUPPORTS = [
+  { k: 'labels', name: 'Labels and landmarks', desc: 'Clear signs on cupboards and stations. Spatial guesses are 60% closer, left-side misses drop 40%, goal-forgetting drops 30%.' },
+  { k: 'checklist', name: 'Step-by-step checklist', desc: 'A written routine for each job. Planning slips drop 70%, memory slips drop 40%.' },
+  { k: 'quiet', name: 'Quiet room', desc: 'Less background noise and movement. Distractions drop 70%.' },
+  { k: 'clear', name: 'Clear walkways', desc: 'Removes the laundry basket, box and bag from the floor.' },
+  { k: 'tools', name: 'Adapted tools', desc: 'Easy-grip handles and a lighter kettle. Slips drop 60%, hand tasks are faster.' }
+];
+
+const LINES = {
+  start: ["Right, time to {phrase}.", "I think I'll {phrase}.", "Let's {phrase}."],
+  done: ['Done!', 'There, finished.', 'All done with that.'],
+  bump: ['Oops!', "Ow, I didn't see that {obj}.", 'Whoa, that was closer than I thought.'],
+  miss: ['Huh, I thought the {st} was here.', "Wait, where's the {st}?", "That's not the {st}."],
+  search: ['Where is the {st}?', "I can't find the {st}.", 'The {st} must be somewhere…'],
+  forget: ['Wait… what was I doing?', 'Why did I come over here?', 'Hmm. I had a reason to be here.'],
+  recall: ['Oh right, I was going to {verb}.', 'Right, the {st}!'],
+  giveup: ['Never mind.', 'Oh well, something else then.'],
+  fumble: ['Oh no, I dropped the {obj}.', "My hands won't cooperate.", 'Let me try that again.'],
+  planfail: ["That didn't work. I need to {verb} first.", "Hmm, something's missing. I should {verb}."],
+  endfail: ['Oh, I still need to {verb}.'],
+  repeat: ['Did I already do this?', 'Let me just {verb}.'],
+  distract: ["Ooh, what's that?", 'Hang on…', 'Is someone talking?'],
+  wait: ["I'll wait for the {st}.", 'Are you nearly done, {name}?', 'After you, {name}.'],
+  greet: ['Hi {name}!', "Hey {name}, how's it going?", 'Morning, {name}.'],
+  greetBack: ['Hi {name}! Good, thanks.', 'Hey! Not bad at all.', 'Oh, hello {name}.'],
+  ask: ['What are you up to, {name}?', 'Busy, {name}?'],
+  tell: ["I'm {gerund}.", 'Just {gerund}.'],
+  tellIdle: ['Just deciding what to do.', 'Nothing much yet.'],
+  tellForgot: ["I'm… I don't remember, actually."],
+  close: ['Nice.', 'Sounds good.', 'Good luck with that!'],
+  comment: ['The kettle takes forever.', 'Has anyone seen the marker?', "It's busy in here today.", 'I think the plant needs water.'],
+  agree: ['True.', 'Yes, I noticed that too.', 'Ha, it does.'],
+  offtopic: ['Sorry, what?', 'Yes. Yes, the… yes.', "Nice weather, isn't it?", 'Hm?'],
+  ignored: ['…okay then.', 'Never mind.'],
+  helpAsk: ['{name}, could you help me find the {st}?', 'Could you give me a hand, {name}?'],
+  helpYes: ["Sure, follow me. It's over here.", 'Of course, let me show you.'],
+  helpHere: ['Here it is.', 'There you go, the {st}.']
+};
+
+// Language production model
+const FUNC = new Set(['the', 'a', 'an', 'to', 'is', 'are', 'am', "i'm", 'of', 'for', 'with', 'could', 'you', 'it', 'that', 'this', 'on', 'in', 'be', 'was', 'do', 'me', 'my', 'your', 'just', 'and', 'at', 'so', "it's", "that's", "i'll", 'there']);
+const SUBS = { kettle: ['pot', 'jug'], cup: ['bowl', 'glass'], tea: ['coffee', 'soup'], water: ['juice', 'rain'], plant: ['tree', 'flower'], book: ['paper', 'letter'], shelf: ['cupboard', 'rack'], bookshelf: ['cupboard', 'ladder'], table: ['desk', 'chair'], sink: ['tap', 'bath'], whiteboard: ['window', 'wall'], marker: ['pen', 'spoon'], plates: ['dishes', 'bowls'], cutlery: ['spoons', 'sticks'], mail: ['letters', 'post'], sofa: ['bed', 'bench'], door: ['gate', 'window'], cupboard: ['fridge', 'box'], list: ['letter', 'note'], hand: ['foot', 'arm'], help: ['hold', 'hand'], weather: ['water', 'window'], kitchen: ['garden', 'room'] };
+function produce(text, L) {
+  if (L < 0.03) return { text, issues: 0 };
+  let issues = 0;
+  const out = [];
+  for (const w of text.split(' ')) {
+    const m = w.match(/^(.*?)([.,!?…]*)$/);
+    const body = m[1], punct = m[2];
+    const core = body.toLowerCase().replace(/[^a-z']/g, '');
+    const isFunc = FUNC.has(core);
+    if (isFunc && L > 0.55 && rnd() < (L - 0.45) * 0.9) { issues++; if (punct) out.push(punct); continue; }
+    if (!isFunc && core.length > 3 && rnd() < L * 0.5) {
+      issues++;
+      const r = rnd();
+      if (SUBS[core] && SUBS[core].length && r < 0.4) out.push(pick(SUBS[core]) + punct);
+      else if (r < 0.7) out.push('um… ' + body + punct);
+      else if (r < 0.85) out.push('the… thing' + punct);
+      else out.push(body.slice(0, 2) + '… ' + body + punct);
+      continue;
+    }
+    out.push(w);
+  }
+  let t = out.join(' ').replace(/\s+([.,!?])/g, '$1').trim();
+  if (!t || /^[.,!?…]+$/.test(t)) t = '…';
+  return { text: cap(t), issues };
+}
+
+// ---------- State ----------
+const COLORS = ['#3D63DD', '#E0664A', '#1F9E89', '#C98A12', '#9A4FB8', '#4F8A2E'];
+const NAMES = ['Ada', 'Ben', 'Chen', 'Dana', 'Eli', 'Farah'];
+const DEFAULTS = [
+  { name: 'Ada', imp: {} },
+  { name: 'Ben', imp: { spatial: 0.6, field: 0.6 } },
+  { name: 'Chen', imp: { memory: 0.65, attention: 0.45 } },
+  { name: 'Dana', imp: { motor: 0.7, language: 0.55 } }
+];
+const STARTS = [{ x: 480, y: 160 }, { x: 720, y: 410 }, { x: 290, y: 300 }, { x: 600, y: 520 }, { x: 780, y: 130 }, { x: 260, y: 200 }];
+
+let agents = [], convos = [], SPEECH = [], LOG = [], uid = 1, simT = 0, speed = 1, running = true, selId = null;
+let pairCD = {}, logFilter = 'all';
+const supports = { labels: false, checklist: false, quiet: false, clear: false, tools: false };
+const world = { tea: 0, notes: 0, books: 0, mail: 0, plantT: -99 };
+let OBS = [], gridCache = {};
+function rebuildObs() { OBS = FIXED.concat(supports.clear ? [] : CLUTTER); gridCache = {}; }
+rebuildObs();
+
+const blank = () => ({ spatial: 0, field: 0, motor: 0, attention: 0, language: 0, planning: 0, memory: 0 });
+const newStats = () => ({ done: 0, time: 0, abandoned: 0, help: 0, ev: { spatial: 0, field: 0, motor: 0, attention: 0, language: 0, planning: 0, memory: 0 } });
+function makeAgent(name, color, pos, imp) {
+  return { id: uid++, name, color, x: pos.x, y: pos.y, h: rnd() * 6.28, imp: Object.assign(blank(), imp), state: 'idle', timer: 0.6 + rnd() * 2.5,
+    path: [], pathI: 0, run: null, bubble: null, phase: rnd() * 10, stats: newStats(), lastTask: null, bumpCD: 0, distractCD: 0, talkCD: 4 + rnd() * 4,
+    marginBoost: 0, stuckT: 0, stuckRef: { x: pos.x, y: pos.y }, purpose: 'step', cue: false, seenSpeech: 0, searchN: 0, errMag: 0, errStep: null,
+    perceived: null, trueT: null, convoWith: null, slot: null, actDur: 1, distractPt: null, bumpObj: '', helpFor: null, helpSt: null };
+}
+const sel = () => agents.find(a => a.id === selId);
+
+// effective severities after room supports and cues
+const effSpatial = a => a.imp.spatial * (supports.labels ? 0.4 : 1) * (a.cue ? 0.35 : 1);
+const effField = a => a.imp.field * (supports.labels ? 0.6 : 1) * (a.cue ? 0.4 : 1);
+const effMotor = a => a.imp.motor * (supports.tools ? 0.75 : 1);
+const effAttention = a => a.imp.attention * (supports.quiet ? 0.3 : 1);
+const effPlanning = a => a.imp.planning * (supports.checklist ? 0.3 : 1) * (a.cue ? 0.5 : 1);
+const effMemory = a => a.imp.memory * (supports.checklist ? 0.6 : 1) * (supports.labels ? 0.7 : 1) * (a.cue ? 0.35 : 1);
+
+// ---------- Pathfinding ----------
+function blockedAt(x, y, m) {
+  if (x < IN.x0 + m || x > IN.x1 - m || y < IN.y0 + m || y > IN.y1 - m) return true;
+  for (const o of OBS) {
+    if (x > o.x - m && x < o.x + o.w + m && y > o.y - m && y < o.y + o.h + m) {
+      const cx = clamp(x, o.x, o.x + o.w), cy = clamp(y, o.y, o.y + o.h);
+      if (Math.hypot(x - cx, y - cy) < m) return true;
+    }
+  }
+  return false;
+}
+function grid(m) {
+  const key = Math.round(m);
+  if (gridCache[key]) return gridCache[key];
+  const g = new Uint8Array(GW * GH);
+  for (let j = 0; j < GH; j++) for (let i = 0; i < GW; i++) g[j * GW + i] = blockedAt(i * CELL + 10, j * CELL + 10, key) ? 1 : 0;
+  return (gridCache[key] = g);
+}
+function toCell(x, y) { return { i: clamp(Math.floor(x / CELL), 0, GW - 1), j: clamp(Math.floor(y / CELL), 0, GH - 1) }; }
+function nearestFree(g, c) {
+  for (let r = 1; r < 12; r++) {
+    let best = null, bd = 1e9;
+    for (let dj = -r; dj <= r; dj++) for (let di = -r; di <= r; di++) {
+      if (Math.max(Math.abs(di), Math.abs(dj)) !== r) continue;
+      const i = c.i + di, j = c.j + dj;
+      if (i < 0 || j < 0 || i >= GW || j >= GH || g[j * GW + i]) continue;
+      const d = di * di + dj * dj; if (d < bd) { bd = d; best = { i, j }; }
+    }
+    if (best) return best;
+  }
+  return c;
+}
+function astar(g, s, t) {
+  const N = GW * GH, gs = new Float32Array(N).fill(Infinity), came = new Int32Array(N).fill(-1), closed = new Uint8Array(N);
+  const si = s.j * GW + s.i, ti = t.j * GW + t.i;
+  const hf = k => { const i = k % GW, j = (k / GW) | 0; const dx = Math.abs(i - t.i), dy = Math.abs(j - t.j); return Math.max(dx, dy) + 0.414 * Math.min(dx, dy); };
+  gs[si] = 0; const open = [si], fs = new Float32Array(N).fill(Infinity); fs[si] = hf(si);
+  while (open.length) {
+    let bi = 0; for (let q = 1; q < open.length; q++) if (fs[open[q]] < fs[open[bi]]) bi = q;
+    const cur = open.splice(bi, 1)[0];
+    if (cur === ti) { const out = []; let k = cur; while (k !== -1) { out.push({ i: k % GW, j: (k / GW) | 0 }); k = came[k]; } return out.reverse(); }
+    closed[cur] = 1;
+    const ci = cur % GW, cj = (cur / GW) | 0;
+    for (let dj = -1; dj <= 1; dj++) for (let di = -1; di <= 1; di++) {
+      if (!di && !dj) continue;
+      const ni = ci + di, nj = cj + dj;
+      if (ni < 0 || nj < 0 || ni >= GW || nj >= GH) continue;
+      const nk = nj * GW + ni;
+      if (g[nk] || closed[nk]) continue;
+      if (di && dj && (g[cj * GW + ni] || g[nj * GW + ci])) continue;
+      const ng = gs[cur] + (di && dj ? 1.414 : 1);
+      if (ng < gs[nk]) { gs[nk] = ng; came[nk] = cur; fs[nk] = ng + hf(nk); if (!open.includes(nk)) open.push(nk); }
+    }
+  }
+  return null;
+}
+function los(a, b, m) {
+  const d = dist(a, b), n = Math.ceil(d / 5);
+  for (let k = 1; k < n; k++) { const t = k / n; if (blockedAt(a.x + (b.x - a.x) * t, a.y + (b.y - a.y) * t, m)) return false; }
+  return true;
+}
+function findPath(sx, sy, tx, ty, m) {
+  const g = grid(m);
+  let s = toCell(sx, sy), t = toCell(tx, ty);
+  if (g[s.j * GW + s.i]) s = nearestFree(g, s);
+  if (g[t.j * GW + t.i]) t = nearestFree(g, t);
+  const cells = astar(g, s, t);
+  if (!cells) return [{ x: tx, y: ty }];
+  const raw = [{ x: sx, y: sy }].concat(cells.map(c => ({ x: c.i * CELL + 10, y: c.j * CELL + 10 })));
+  if (!blockedAt(tx, ty, m)) raw.push({ x: tx, y: ty });
+  const out = []; let i = 0;
+  while (i < raw.length - 1) { let j = raw.length - 1; while (j > i + 1 && !los(raw[i], raw[j], m)) j--; out.push(raw[j]); i = j; }
+  return out.length ? out : [{ x: tx, y: ty }];
+}
+function planMargin(a) { return R + 6 - effSpatial(a) * 13 + a.marginBoost; }
+function planPath(a) { a.path = findPath(a.x, a.y, a.perceived.x, a.perceived.y, planMargin(a)); a.pathI = 0; a.stuckT = 0; a.stuckN = 0; a.stuckRef = { x: a.x, y: a.y }; }
+
+// ---------- Logging & speech ----------
+function log(a, kind, text, opt = {}) {
+  const e = { t: simT, id: a ? a.id : null, name: a ? a.name : '', color: a ? a.color : '', kind, text, lang: !!opt.lang };
+  LOG.unshift(e); if (LOG.length > 400) LOG.pop();
+  renderLogEntry(e, true);
+}
+function ev(a, tag, text) { if (a.stats.ev[tag] !== undefined) a.stats.ev[tag]++; if (a.run) a.run.fails++; log(a, tag, text); }
+function say(a, raw, vars = {}) {
+  const r = produce(fill(raw, vars), a.imp.language);
+  a.bubble = { text: r.text, t: 3.6, max: 3.6 };
+  SPEECH.push({ x: a.x, y: a.y, t: simT, by: a.id, name: a.name });
+  if (r.issues) a.stats.ev.language++;
+  log(a, 'say', r.text, { lang: r.issues > 0 });
+}
+function nameFor(a, b) {
+  if (rnd() < effMemory(a) * 0.55) { ev(a, 'memory', `couldn't recall ${b.name}'s name`); return pick(['uh… you', 'um… sorry, what was your name']); }
+  return b.name;
+}
+
+// ---------- Behaviour ----------
+function release(a) { for (const k in STATIONS) STATIONS[k].users.delete(a.id); }
+function chooseTask(a) {
+  const keys = Object.keys(TASKS).filter(k => k !== a.lastTask);
+  let tot = keys.reduce((s, k) => s + TASKS[k].w, 0), r = rnd() * tot;
+  for (const k of keys) { r -= TASKS[k].w; if (r <= 0) return k; }
+  return keys[0];
+}
+function detachConvo(a) {
+  const i = convos.findIndex(c => c.a === a || c.b === a);
+  if (i < 0) return;
+  const c = convos.splice(i, 1)[0];
+  const other = c.a === a ? c.b : c.a;
+  other.convoWith = null; if (other.state === 'talking') resume(other);
+  a.convoWith = null;
+}
+function startTask(a, key, announce = true) {
+  detachConvo(a); release(a);
+  const def = TASKS[key];
+  const steps = def.steps.map(s => ({ ...s }));
+  const P = effPlanning(a);
+  const notes = [];
+  if (steps.length > 1) {
+    for (let i = 0; i < steps.length - 1; i++) if (rnd() < P * 0.35) { notes.push(`“${steps[i + 1].verb}” before “${steps[i].verb}”`); [steps[i], steps[i + 1]] = [steps[i + 1], steps[i]]; i++; }
+    for (let i = steps.length - 1; i >= 0; i--) if (steps.length > 1 && rnd() < P * 0.18) { notes.push(`left out “${steps[i].verb}”`); steps.splice(i, 1); }
+  }
+  a.cue = false; a.purpose = 'step'; a.helpFor = null; a.marginBoost = 0;
+  a.run = { key, def, plan: steps, flags: new Set(), done: new Set(), start: simT, fails: 0, asked: false };
+  if (notes.length) log(a, 'planning', `planned “${def.name}” with mistakes: ${notes.join('; ')}`);
+  if (announce && rnd() < 0.35) say(a, pick(LINES.start), { phrase: def.phrase });
+  nextStep(a);
+}
+function nextStep(a) {
+  const run = a.run;
+  if (!run) { a.state = 'idle'; a.timer = 1; return; }
+  if (!run.plan.length) {
+    const missing = run.def.steps.filter(s => !run.done.has(s.verb));
+    if (missing.length) {
+      a.stats.ev.planning++; run.fails++;
+      log(a, 'planning', `thought they were finished, then noticed they never did “${missing[0].verb}”`);
+      say(a, pick(LINES.endfail), { verb: missing[0].verb });
+      run.plan = missing.map(s => ({ ...s }));
+    } else return completeTask(a);
+  }
+  a.state = 'thinking';
+  a.timer = 0.25 + effPlanning(a) * 1.6 + rnd() * 0.3;
+}
+function completeTask(a) {
+  const t = simT - a.run.start, def = a.run.def;
+  a.stats.done++; a.stats.time += t;
+  log(a, 'done', `finished “${def.name}” in ${fmt(t)}`);
+  if (rnd() < 0.6) say(a, pick(LINES.done));
+  if (a.run.key === 'tea') world.tea = Math.min(world.tea + 1, 8);
+  if (a.run.key === 'note') world.notes = Math.min(world.notes + 1, 12);
+  if (a.run.key === 'book') world.books = Math.min(world.books + 1, 4);
+  if (a.run.key === 'mail') world.mail = Math.min(world.mail + 1, 4);
+  if (a.run.key === 'plant') world.plantT = simT;
+  a.lastTask = a.run.key; a.run = null; a.cue = false; a.marginBoost = 0;
+  a.state = 'idle'; a.timer = 1.5 + rnd() * 2.5;
+}
+function locate(a) {
+  if (!a.run) { a.state = 'idle'; a.timer = 0.5; return; }
+  if (!a.run.plan.length) return nextStep(a);
+  const step = a.run.plan[0], st = STATIONS[step.st];
+  if (a.run.fails >= 3 && !a.run.asked && rnd() < 0.6 && requestHelp(a, st)) return;
+  if (a.errStep !== step) { a.errStep = step; a.errMag = effSpatial(a); a.searchN = 0; a.marginBoost = 0; }
+  // Visual field: targets on the left can go unseen
+  const F = effField(a);
+  if (F > 0.02 && a.searchN < 3) {
+    const vx = Math.cos(a.h), vy = Math.sin(a.h), tx = st.x - a.x, ty = st.y - a.y;
+    if (Math.hypot(tx, ty) > 40) {
+      const ang = Math.atan2(vx * ty - vy * tx, vx * tx + vy * ty);
+      if (ang < -0.35 && rnd() < F * 0.85) {
+        a.searchN++; a.state = 'searching'; a.timer = 1.4 + rnd() * 1.2;
+        say(a, pick(LINES.search), { st: st.label });
+        ev(a, 'field', `didn't see the ${st.label} on their left; turning right to scan`);
+        return;
+      }
+    }
+  }
+  // Spatial: aim at a misjudged spot
+  const ang = rnd() * Math.PI * 2, mag = a.errMag * (60 + rnd() * 60);
+  a.perceived = { x: clamp(st.x + Math.cos(ang) * mag, 40, 920), y: clamp(st.y + Math.sin(ang) * mag, 40, 560) };
+  a.trueT = st; a.purpose = 'step';
+  planPath(a);
+  a.state = 'walking';
+}
+function arrive(a) {
+  if (a.purpose === 'help') {
+    say(a, pick(LINES.helpHere), { st: a.helpSt.label });
+    a.purpose = 'step'; a.helpFor = null; resume(a); return;
+  }
+  const st = a.trueT;
+  const off = dist(a.perceived, st);
+  if (off > 28) {
+    say(a, pick(LINES.miss), { st: st.label });
+    ev(a, 'spatial', `expected the ${st.label} about ${(off / PX_PER_M).toFixed(1)} m from where it is`);
+    a.errMag *= 0.45; a.state = 'thinking'; a.timer = 0.9; return;
+  }
+  beginAct(a);
+}
+function beginAct(a) {
+  const st = a.trueT, step = a.run && a.run.plan[0];
+  if (!step) return nextStep(a);
+  if (st.users.size >= st.cap && !st.users.has(a.id)) {
+    if (a.state !== 'waiting') {
+      a.state = 'waiting';
+      const other = agents.find(b => st.users.has(b.id));
+      if (rnd() < 0.6) say(a, pick(LINES.wait), { st: st.label, name: other ? other.name : 'there' });
+    }
+    return;
+  }
+  st.users.add(a.id);
+  const idx = [...st.users].indexOf(a.id);
+  a.slot = st.cap > 1 ? { x: st.x + (idx === 0 ? -22 : 22), y: st.y } : { x: st.x, y: st.y };
+  a.state = 'acting';
+  a.actDur = step.dur * (1 + 1.3 * effMotor(a) * (supports.tools ? 0.6 : 1)) * (0.85 + rnd() * 0.3);
+  a.timer = a.actDur;
+}
+function finishAct(a) {
+  const run = a.run, step = run.plan[0];
+  const missing = (step.needs || []).filter(f => !run.flags.has(f));
+  if (missing.length) {
+    const fix = run.def.steps.filter(s => s.gives && missing.includes(s.gives));
+    if (fix.length) {
+      run.plan = fix.map(s => ({ ...s })).concat(run.plan);
+      say(a, pick(LINES.planfail), { verb: fix[0].verb });
+      ev(a, 'planning', `tried to ${step.verb} before they ${fix.map(s => s.verb).join(' and ')}`);
+      release(a); a.state = 'thinking'; a.timer = 1.0; return;
+    }
+  }
+  const slip = effMotor(a) * 0.4 * (supports.tools ? 0.4 : 1);
+  if (rnd() < slip) {
+    say(a, pick(LINES.fumble), { obj: step.obj });
+    ev(a, 'motor', `fumbled while trying to ${step.verb}; starting that again`);
+    a.timer = a.actDur * 0.7; return;
+  }
+  if (step.gives) run.flags.add(step.gives);
+  for (const f of step.needs || []) if (CARRY.has(f)) run.flags.delete(f);
+  run.done.add(step.verb);
+  release(a); run.plan.shift();
+  if (rnd() < effPlanning(a) * 0.15) {
+    run.plan.unshift({ ...step }); a.stats.ev.planning++;
+    log(a, 'planning', `got stuck on the same step and is about to ${step.verb} again`);
+  } else if (run.plan.length && rnd() < effMemory(a) * 0.2) {
+    run.plan.unshift({ ...step }); a.stats.ev.memory++;
+    say(a, pick(LINES.repeat), { verb: step.verb });
+    log(a, 'memory', `forgot they had already done “${step.verb}”`);
+  }
+  nextStep(a);
+}
+function forget(a) {
+  release(a);
+  const step = a.run.plan[0];
+  a.state = 'confused'; a.timer = 1.8 + rnd() * 1.5;
+  say(a, pick(LINES.forget));
+  ev(a, 'memory', `lost track of the goal (was going to ${step ? step.verb : 'do something'})`);
+}
+function resolveConfusion(a) {
+  if (!a.run) { a.state = 'idle'; a.timer = 0.5; return; }
+  const step = a.run.plan[0];
+  if (rnd() > effMemory(a) * 0.65) { if (step) say(a, pick(LINES.recall), { verb: step.verb, st: STATIONS[step.st].label }); locate(a); }
+  else if (rnd() < 0.5) {
+    log(a, 'memory', `couldn't remember where they were up to, so started “${a.run.def.name}” over`);
+    a.run.plan = a.run.def.steps.map(s => ({ ...s })); a.run.done.clear(); nextStep(a);
+  } else {
+    log(a, 'memory', `gave up on “${a.run.def.name}”`);
+    a.stats.abandoned++; say(a, pick(LINES.giveup));
+    a.lastTask = a.run.key; a.run = null; a.state = 'idle'; a.timer = 1 + rnd() * 1.5;
+  }
+}
+function distract(a, src) {
+  if (a.state === 'acting') release(a);
+  a.state = 'distracted'; a.timer = 1.2 + effAttention(a) * 2.5 + rnd() * 1.5;
+  a.distractPt = src; a.distractCD = 3 + rnd() * 3;
+  if (rnd() < 0.5) say(a, pick(LINES.distract));
+  ev(a, 'attention', `was pulled away by ${src.label}`);
+}
+function attentionCheck(a, dt) {
+  const A = effAttention(a);
+  if (A < 0.01 || a.distractCD > 0) { if (SPEECH.length) a.seenSpeech = SPEECH[SPEECH.length - 1].t; return false; }
+  let src = null;
+  for (const sp of SPEECH) {
+    if (sp.t <= a.seenSpeech || sp.by === a.id) continue;
+    a.seenSpeech = sp.t;
+    if (!src && Math.hypot(sp.x - a.x, sp.y - a.y) < 280 && rnd() < A * 0.4) src = { x: sp.x, y: sp.y, label: `${sp.name}'s voice` };
+  }
+  if (!src && rnd() < A * 0.08 * dt) src = pick(POIS.filter(p => Math.hypot(p.x - a.x, p.y - a.y) > 80));
+  if (!src) return false;
+  distract(a, src); return true;
+}
+function resume(a) {
+  if (a.run && a.run.plan.length) { a.state = 'thinking'; a.timer = 0.3; }
+  else if (a.run) nextStep(a);
+  else { a.state = 'idle'; a.timer = 0.5 + rnd(); }
+}
+function bump(a, o) {
+  const S = effSpatial(a), M = effMotor(a);
+  if (S < 0.05 && M < 0.05) return;
+  a.state = 'bumped'; a.timer = 0.7 + M * 0.6; a.bumpCD = 2.2; a.marginBoost += 5; a.bumpObj = o.label;
+  say(a, pick(LINES.bump), { obj: o.label });
+  if (S >= M * 0.8) ev(a, 'spatial', `cut too close and bumped into the ${o.label}`);
+  else ev(a, 'motor', `wobbled off course into the ${o.label}`);
+}
+function requestHelp(a, st) {
+  const cands = agents.filter(b => b !== a && ['walking', 'idle', 'thinking', 'waiting'].includes(b.state) && b.purpose !== 'help');
+  if (!cands.length) return false;
+  const score = b => Object.values(b.imp).reduce((s, v) => s + v, 0) + dist(a, b) / 600;
+  cands.sort((x, y) => score(x) - score(y));
+  a.run.asked = true; a.stats.help++;
+  startConvo(a, cands[0], 'help', { st });
+  return true;
+}
+function startHelping(b, a, st) {
+  b.purpose = 'help'; b.helpFor = a; b.helpSt = st;
+  const ang = rnd() * Math.PI * 2, mag = effSpatial(b) * (40 + rnd() * 40);
+  b.perceived = { x: clamp(st.x + Math.cos(ang) * mag, 40, 920), y: clamp(st.y + Math.sin(ang) * mag, 40, 560) };
+  b.marginBoost = 0; planPath(b); b.state = 'walking';
+}
+
+// ---------- Conversation ----------
+function startConvo(a, b, kind, extra = {}) {
+  for (const x of [a, b]) { release(x); x.state = 'talking'; x.convoWith = x === a ? b : a; x.talkCD = 10 + rnd() * 8; }
+  const lines = []; let t = 0.3 + a.imp.language * 1.0;
+  const add = (fn, gap) => { lines.push({ at: t, fn }); t += gap; };
+  const replyGap = 1.6 + b.imp.language * 1.2;
+  const ignores = rnd() < effAttention(b) * 0.5;
+  const misread = !ignores && rnd() < b.imp.language * 0.55;
+  if (kind === 'greet') add(() => say(a, pick(LINES.greet), { name: nameFor(a, b) }), replyGap);
+  else if (kind === 'ask') add(() => say(a, pick(LINES.ask), { name: nameFor(a, b) }), replyGap);
+  else if (kind === 'comment') add(() => say(a, pick(LINES.comment)), replyGap);
+  else add(() => say(a, pick(LINES.helpAsk), { name: b.name, st: extra.st.label }), replyGap);
+  let helped = false;
+  if (ignores) add(() => { ev(b, 'attention', `didn't notice ${a.name} talking to them`); say(a, pick(LINES.ignored)); }, 1.6);
+  else if (misread) add(() => { ev(b, 'language', `misunderstood what ${a.name} said`); say(b, pick(LINES.offtopic)); }, 1.8);
+  else if (kind === 'greet') add(() => say(b, pick(LINES.greetBack), { name: nameFor(b, a) }), 1.8);
+  else if (kind === 'ask') {
+    add(() => {
+      if (b.run && rnd() < effMemory(b) * 0.5) { ev(b, 'memory', "couldn't say which job they were in the middle of"); say(b, pick(LINES.tellForgot)); }
+      else if (b.run) say(b, pick(LINES.tell), { gerund: b.run.def.gerund });
+      else say(b, pick(LINES.tellIdle));
+    }, 1.8);
+    add(() => say(a, pick(LINES.close)), 1.4);
+  } else if (kind === 'comment') add(() => say(b, pick(LINES.agree)), 1.6);
+  else { helped = true; add(() => say(b, pick(LINES.helpYes)), 1.6); }
+  convos.push({ a, b, kind, lines, t: 0, i: 0, end: t + 0.3, helped, st: extra.st });
+}
+function endConvo(c) {
+  convos.splice(convos.indexOf(c), 1);
+  const { a, b } = c;
+  a.convoWith = null; b.convoWith = null;
+  if (a.state === 'talking') resume(a);
+  if (c.kind === 'help' && c.helped && a.run) {
+    a.cue = true; a.errStep = null;
+    log(b, 'support', `walked ${a.name} to the ${c.st.label}; the cue cuts ${a.name}'s spatial, memory and planning slips for the rest of this job`);
+    startHelping(b, a, c.st);
+  } else if (b.state === 'talking') resume(b);
+}
+const isFree = a => ['walking', 'idle', 'thinking', 'waiting'].includes(a.state) && a.purpose !== 'help' && a.talkCD <= 0;
+
+// ---------- Motion ----------
+function collide(a) {
+  let hit = null;
+  for (const o of OBS) {
+    const cx = clamp(a.x, o.x, o.x + o.w), cy = clamp(a.y, o.y, o.y + o.h);
+    const dx = a.x - cx, dy = a.y - cy, d = Math.hypot(dx, dy);
+    if (d >= R) continue;
+    if (d < 0.01) {
+      const l = a.x - o.x, r = o.x + o.w - a.x, t = a.y - o.y, b = o.y + o.h - a.y, m = Math.min(l, r, t, b);
+      if (m === l) a.x = o.x - R; else if (m === r) a.x = o.x + o.w + R; else if (m === t) a.y = o.y - R; else a.y = o.y + o.h + R;
+      hit = o;
+    } else { a.x += dx / d * (R - d); a.y += dy / d * (R - d); if (R - d > 0.8) hit = o; }
+  }
+  a.x = clamp(a.x, IN.x0 + R, IN.x1 - R); a.y = clamp(a.y, IN.y0 + R, IN.y1 - R);
+  return hit;
+}
+function moveToward(a, tx, ty, mul, dt, bumpable) {
+  const d = Math.hypot(tx - a.x, ty - a.y);
+  const desired = Math.atan2(ty - a.y, tx - a.x);
+  const diff = angDiff(desired, a.h);
+  a.h += clamp(diff, -7 * dt, 7 * dt);
+  const M = effMotor(a);
+  const sp = Math.min(66 * (1 - 0.55 * M) * mul * Math.max(0.25, Math.cos(diff)), d / dt);
+  const tr = M * 50 * (Math.sin(simT * 9 + a.phase) + (rnd() - 0.5) * 1.4);
+  a.x += (Math.cos(a.h) * sp - Math.sin(a.h) * tr) * dt;
+  a.y += (Math.sin(a.h) * sp + Math.cos(a.h) * tr) * dt;
+  const hit = collide(a);
+  if (hit && bumpable && a.bumpCD <= 0) bump(a, hit);
+}
+function faceToward(a, ang, dt) { a.h += clamp(angDiff(ang, a.h), -5 * dt, 5 * dt); }
+
+// ---------- Update ----------
+function update(a, dt) {
+  a.bumpCD -= dt; a.distractCD -= dt; a.talkCD -= dt;
+  if (a.bubble) { a.bubble.t -= dt; if (a.bubble.t <= 0) a.bubble = null; }
+  switch (a.state) {
+    case 'idle':
+      a.timer -= dt;
+      if (a.timer <= 0) startTask(a, chooseTask(a));
+      break;
+    case 'thinking':
+      a.timer -= dt;
+      if (a.run && attentionCheck(a, dt)) break;
+      if (a.timer <= 0) locate(a);
+      break;
+    case 'searching':
+      a.h += dt * 1.5; a.timer -= dt;
+      if (a.timer <= 0) locate(a);
+      break;
+    case 'walking': {
+      if (a.purpose === 'step' && a.run) {
+        if (rnd() < effMemory(a) * 0.09 * dt) { forget(a); break; }
+        if (attentionCheck(a, dt)) break;
+      }
+      if (a.pathI >= a.path.length) { arrive(a); break; }
+      const wp = a.path[a.pathI];
+      if (Math.hypot(wp.x - a.x, wp.y - a.y) < 5) { a.pathI++; break; }
+      moveToward(a, wp.x, wp.y, 1, dt, true);
+      a.stuckT += dt;
+      if (a.stuckT > 1.6) {
+        if (dist(a, a.stuckRef) < 10) { if (++a.stuckN > 3) { a.stuckN = 0; arrive(a); break; } a.marginBoost += 4; const n = a.stuckN; planPath(a); a.stuckN = n; }
+        a.stuckT = 0; a.stuckRef = { x: a.x, y: a.y };
+      }
+      break;
+    }
+    case 'waiting':
+      if (attentionCheck(a, dt)) break;
+      faceToward(a, Math.atan2(a.trueT.y - a.y, a.trueT.x - a.x), dt);
+      beginAct(a);
+      break;
+    case 'acting': {
+      if (attentionCheck(a, dt * 0.6)) break;
+      const st = a.trueT;
+      a.x += (a.slot.x - a.x) * Math.min(1, dt * 3); a.y += (a.slot.y - a.y) * Math.min(1, dt * 3);
+      collide(a);
+      faceToward(a, st.face, dt);
+      a.timer -= dt;
+      if (a.timer <= 0) finishAct(a);
+      break;
+    }
+    case 'confused':
+      a.timer -= dt; a.h += Math.sin(simT * 2.2 + a.phase) * dt * 1.6;
+      if (a.timer <= 0) resolveConfusion(a);
+      break;
+    case 'distracted': {
+      const p = a.distractPt;
+      if (Math.hypot(p.x - a.x, p.y - a.y) > 70) moveToward(a, p.x, p.y, 0.5, dt, false);
+      else faceToward(a, Math.atan2(p.y - a.y, p.x - a.x), dt);
+      a.timer -= dt;
+      if (a.timer <= 0) {
+        if (a.run && rnd() < effMemory(a) * 0.6) forget(a);
+        else resume(a);
+      }
+      break;
+    }
+    case 'bumped':
+      a.timer -= dt;
+      if (a.timer <= 0) { planPath(a); a.state = 'walking'; }
+      break;
+    case 'talking':
+      if (a.convoWith) faceToward(a, Math.atan2(a.convoWith.y - a.y, a.convoWith.x - a.x), dt);
+      break;
+  }
+}
+function tick(dt) {
+  simT += dt;
+  for (const a of agents) update(a, dt);
+  // keep people from overlapping
+  for (let i = 0; i < agents.length; i++) for (let j = i + 1; j < agents.length; j++) {
+    const a = agents[i], b = agents[j], d = dist(a, b);
+    if (d < R * 2 && d > 0.01) {
+      const p = (R * 2 - d) / 2, nx = (b.x - a.x) / d, ny = (b.y - a.y) / d;
+      a.x -= nx * p; a.y -= ny * p; b.x += nx * p; b.y += ny * p; collide(a); collide(b);
+    }
+  }
+  for (const c of convos.slice()) {
+    c.t += dt;
+    while (c.i < c.lines.length && c.t >= c.lines[c.i].at) c.lines[c.i++].fn();
+    if (c.t >= c.end) endConvo(c);
+  }
+  if (convos.length < 2) {
+    for (let i = 0; i < agents.length; i++) for (let j = i + 1; j < agents.length; j++) {
+      const a = agents[i], b = agents[j];
+      if (!isFree(a) || !isFree(b) || dist(a, b) > 80) continue;
+      const key = a.id + '-' + b.id;
+      if ((pairCD[key] || 0) > simT || rnd() > 0.5 * dt) continue;
+      pairCD[key] = simT + 14 + rnd() * 10;
+      const [s, l] = rnd() < 0.5 ? [a, b] : [b, a];
+      startConvo(s, l, pick(['greet', 'greet', 'ask', 'comment']));
+    }
+  }
+  while (SPEECH.length && SPEECH[0].t < simT - 3) SPEECH.shift();
+}
+
+// ---------- Rendering ----------
+const canvas = $('#room'), ctx = canvas.getContext('2d');
+let scale = 1, dpr = 1, ts = 1, T = {};
+const TOKENS = ['floor', 'floor-grid', 'wall', 'furn', 'furn-line', 'rug', 'sofa', 'board', 'head', 'bubble', 'bubble-ink', 'ink', 'muted', 'surface', 'accent', 't-spatial', 't-field', 't-motor', 't-attention', 't-language', 't-planning', 't-memory', 't-support'];
+function readTheme() { const cs = getComputedStyle(document.documentElement); for (const k of TOKENS) T[k] = cs.getPropertyValue('--' + k).trim(); }
+readTheme();
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', readTheme);
+new MutationObserver(readTheme).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme', 'class', 'style'] });
+function resize() {
+  const w = canvas.clientWidth || 900; dpr = window.devicePixelRatio || 1;
+  canvas.width = Math.round(w * dpr); canvas.height = Math.round(w * H / W * dpr);
+  scale = w / W; ts = clamp(0.95 / scale, 1, 1.6);
+}
+new ResizeObserver(resize).observe(canvas); resize();
+
+function rr(x, y, w, h, r) { ctx.beginPath(); if (ctx.roundRect) ctx.roundRect(x, y, w, h, r); else ctx.rect(x, y, w, h); }
+function box(x, y, w, h, r, fillC, strokeC) { rr(x, y, w, h, r); ctx.fillStyle = fillC; ctx.fill(); if (strokeC) { ctx.strokeStyle = strokeC; ctx.lineWidth = 1.5; ctx.stroke(); } }
+function label(text, x, y, opt = {}) {
+  ctx.save(); ctx.font = `600 ${9 * ts}px ${MONO}`;
+  ctx.fillStyle = opt.color || T.muted; ctx.textAlign = opt.align || 'center'; ctx.textBaseline = 'middle';
+  if (opt.rot) { ctx.translate(x, y); ctx.rotate(opt.rot); ctx.fillText(text, 0, 0); } else ctx.fillText(text, x, y);
+  ctx.restore();
+}
+const BOOKCOLS = ['#B9584A', '#4F7FB0', '#D6A33A', '#5E9A6E', '#8A6AAE', '#C27A3E'];
+const MONO = '"JetBrains Mono", ui-monospace, monospace', BODY = '"Atkinson Hyperlegible", system-ui, sans-serif';
+
+function drawRoom() {
+  ctx.fillStyle = T.floor; ctx.fillRect(0, 0, W, H);
+  ctx.strokeStyle = T['floor-grid']; ctx.lineWidth = 1; ctx.beginPath();
+  for (let x = 16 + 40; x < 944; x += 40) { ctx.moveTo(x, 16); ctx.lineTo(x, 584); }
+  for (let y = 16 + 40; y < 584; y += 40) { ctx.moveTo(16, y); ctx.lineTo(944, y); }
+  ctx.stroke();
+  box(360, 210, 300, 210, 18, T.rug);
+  // walls
+  ctx.fillStyle = T.wall;
+  ctx.fillRect(0, 0, W, 16); ctx.fillRect(0, 584, W, 16); ctx.fillRect(944, 0, 16, H);
+  ctx.fillRect(0, 0, 16, 260); ctx.fillRect(0, 340, 16, 260);
+  ctx.fillStyle = T.floor; ctx.fillRect(780, 5, 110, 6);
+  ctx.strokeStyle = T.wall; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(835, 5); ctx.lineTo(835, 11); ctx.stroke();
+  label('WINDOW', 835, 26);
+  // door swing
+  ctx.strokeStyle = T['furn-line']; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(16, 260); ctx.lineTo(16 + 80 * Math.cos(1.2), 260 + 80 * Math.sin(1.2)); ctx.stroke();
+  ctx.setLineDash([3, 4]); ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(16, 260, 80, 1.2, Math.PI / 2); ctx.stroke(); ctx.setLineDash([]);
+  label('DOOR', 30, 300, { rot: -Math.PI / 2 });
+  // counter with cupboard, sink, kettle
+  box(16, 16, 344, 70, 4, T.furn, T['furn-line']);
+  ctx.strokeStyle = T['furn-line']; ctx.lineWidth = 1.2;
+  ctx.beginPath(); ctx.moveTo(70, 22); ctx.lineTo(70, 80); ctx.moveTo(26, 22); ctx.lineTo(26, 80); ctx.moveTo(114, 22); ctx.lineTo(114, 80); ctx.stroke();
+  ctx.fillStyle = T['furn-line']; ctx.beginPath(); ctx.arc(64, 64, 2.4, 0, 7); ctx.arc(76, 64, 2.4, 0, 7); ctx.fill();
+  box(142, 26, 76, 46, 9, T.floor, T['furn-line']);
+  ctx.beginPath(); ctx.arc(180, 49, 3, 0, 7); ctx.fillStyle = T['furn-line']; ctx.fill();
+  box(176, 18, 8, 10, 2, T['furn-line']);
+  ctx.beginPath(); ctx.arc(295, 48, 15, 0, 7); ctx.fillStyle = T.board; ctx.fill(); ctx.strokeStyle = T['furn-line']; ctx.lineWidth = 1.5; ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(308, 42); ctx.lineTo(320, 35); ctx.stroke();
+  ctx.beginPath(); ctx.arc(281, 48, 7, Math.PI * 0.6, Math.PI * 1.4); ctx.stroke();
+  label('CUPBOARD', 70, 99); label('SINK', 180, 99); label('KETTLE', 295, 99);
+  // whiteboard with notes written
+  box(520, 16, 220, 12, 2, T.board, T['furn-line']);
+  for (let i = 0; i < world.notes; i++) { ctx.fillStyle = BOOKCOLS[i % BOOKCOLS.length]; ctx.fillRect(530 + i * 17, 20, 11, 4); }
+  label('WHITEBOARD', 630, 40);
+  // bookshelf
+  box(898, 110, 46, 220, 3, T.furn, T['furn-line']);
+  const nb = 19 + world.books;
+  for (let i = 0; i < nb; i++) { ctx.fillStyle = BOOKCOLS[(i * 7) % BOOKCOLS.length]; ctx.fillRect(904, 116 + i * 9, 26 + ((i * 5) % 9), 6); }
+  label('BOOKSHELF', 884, 220, { rot: -Math.PI / 2 });
+  // table + chairs
+  for (const id of ['chairW', 'chairE', 'chairS1', 'chairS2']) { const o = FIXED.find(f => f.id === id); box(o.x, o.y, o.w, o.h, 5, T.furn, T['furn-line']); }
+  box(400, 250, 190, 110, 10, T.furn, T['furn-line']);
+  for (let i = 0; i < world.tea; i++) { const x = 418 + i * 21, y = 268; ctx.beginPath(); ctx.arc(x, y, 6, 0, 7); ctx.fillStyle = T.board; ctx.fill(); ctx.strokeStyle = T['furn-line']; ctx.lineWidth = 1.2; ctx.stroke(); ctx.beginPath(); ctx.arc(x, y, 3.5, 0, 7); ctx.fillStyle = '#9C6B3E'; ctx.fill(); }
+  for (let i = 0; i < world.mail; i++) { ctx.save(); ctx.translate(540 + i * 4, 330 - i * 2); ctx.rotate(-0.15 + i * 0.1); ctx.fillStyle = T.board; ctx.strokeStyle = T['furn-line']; ctx.lineWidth = 1; ctx.fillRect(-11, -7, 22, 14); ctx.strokeRect(-11, -7, 22, 14); ctx.restore(); }
+  label('TABLE', 495, 305);
+  // sofa + coffee table
+  box(40, 504, 210, 80, 12, T.sofa, T['furn-line']);
+  box(54, 512, 88, 48, 7, T.furn, T['furn-line']); box(148, 512, 88, 48, 7, T.furn, T['furn-line']);
+  label('SOFA', 145, 572);
+  box(100, 396, 90, 40, 6, T.furn, T['furn-line']);
+  ctx.save(); ctx.translate(132, 414); ctx.rotate(0.2); ctx.fillStyle = BOOKCOLS[1]; ctx.globalAlpha = 0.6; ctx.fillRect(-12, -8, 24, 16); ctx.restore();
+  // plant
+  const wet = clamp(1 - (simT - world.plantT) / 20, 0, 1);
+  ctx.beginPath(); ctx.arc(900, 528, 24, 0, 7); ctx.fillStyle = '#B5815A'; ctx.fill();
+  for (let i = 0; i < 9; i++) { const an = i / 9 * Math.PI * 2 + 0.3; ctx.save(); ctx.translate(900 + Math.cos(an) * 12, 528 + Math.sin(an) * 12); ctx.rotate(an); ctx.beginPath(); ctx.ellipse(0, 0, 15, 6, 0, 0, 7); ctx.fillStyle = i % 2 ? '#3F8B4E' : '#57A463'; ctx.fill(); ctx.restore(); }
+  if (wet > 0) { ctx.beginPath(); ctx.arc(900, 528, 34 + (1 - wet) * 10, 0, 7); ctx.strokeStyle = T['t-spatial']; ctx.globalAlpha = wet * 0.6; ctx.lineWidth = 2; ctx.stroke(); ctx.globalAlpha = 1; }
+  label('PLANT', 900, 574);
+  // clutter
+  if (!supports.clear) {
+    box(300, 430, 50, 40, 6, '#C9A46A', '#8E6F3E');
+    ctx.strokeStyle = '#8E6F3E'; ctx.lineWidth = 1; ctx.beginPath();
+    for (let x = 306; x < 350; x += 8) { ctx.moveTo(x, 432); ctx.lineTo(x, 468); }
+    ctx.stroke();
+    box(700, 170, 40, 36, 2, '#C7A27C', '#8C6B47');
+    ctx.strokeStyle = '#E8D7B5'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(720, 170); ctx.lineTo(720, 206); ctx.stroke();
+    box(650, 470, 38, 30, 9, '#6E7FA8', '#4C5B80');
+    ctx.strokeStyle = '#4C5B80'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(669, 470, 9, Math.PI, 0); ctx.stroke();
+  }
+}
+
+const STATUS = { thinking: ['…', 'muted'], searching: ['↻', 't-field'], confused: ['?', 't-memory'], distracted: ['!', 't-attention'], waiting: ['⧗', 'muted'], bumped: ['✶', 't-spatial'] };
+function drawOverlay(a) {
+  // field of view, with the neglected side shaded
+  const FOV = 1.3, RAD = 150;
+  ctx.save();
+  ctx.globalAlpha = 0.10; ctx.fillStyle = a.color;
+  ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.arc(a.x, a.y, RAD, a.h - FOV, a.h + FOV); ctx.closePath(); ctx.fill();
+  const F = effField(a);
+  if (F > 0.02) {
+    ctx.globalAlpha = 0.12 + F * 0.3; ctx.fillStyle = T.ink;
+    ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.arc(a.x, a.y, RAD, a.h - FOV, a.h - 0.35); ctx.closePath(); ctx.fill();
+    ctx.globalAlpha = 1;
+    const la = a.h - FOV / 2 - 0.2;
+    label('OFTEN UNSEEN', a.x + Math.cos(la) * 95, a.y + Math.sin(la) * 95, { color: T.ink });
+  }
+  ctx.restore();
+  // personal clearance used for route planning
+  const m = planMargin(a);
+  ctx.save(); ctx.setLineDash([2, 3]); ctx.strokeStyle = a.color; ctx.lineWidth = 1; ctx.globalAlpha = 0.8;
+  ctx.beginPath(); ctx.arc(a.x, a.y, m, 0, 7); ctx.stroke(); ctx.restore();
+  if (m < R) { ctx.save(); ctx.strokeStyle = T['t-spatial']; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(a.x, a.y, R + 2, 0, 7); ctx.stroke(); ctx.restore(); }
+  // perceived vs real target
+  if (a.state === 'walking' && a.perceived) {
+    const tgt = a.purpose === 'help' ? a.helpSt : a.trueT;
+    if (tgt) {
+      const off = dist(a.perceived, tgt);
+      ctx.save(); ctx.strokeStyle = a.color; ctx.lineWidth = 1.5; ctx.setLineDash([5, 4]);
+      ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(a.perceived.x, a.perceived.y); ctx.stroke(); ctx.setLineDash([]);
+      ctx.beginPath(); ctx.arc(a.perceived.x, a.perceived.y, 9, 0, 7); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(a.perceived.x - 5, a.perceived.y - 5); ctx.lineTo(a.perceived.x + 5, a.perceived.y + 5); ctx.moveTo(a.perceived.x + 5, a.perceived.y - 5); ctx.lineTo(a.perceived.x - 5, a.perceived.y + 5); ctx.stroke();
+      if (off > 20) {
+        label('THINKS IT IS HERE', a.perceived.x, a.perceived.y - 18, { color: a.color });
+        ctx.strokeStyle = T.ink; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(tgt.x, tgt.y, 13, 0, 7); ctx.stroke();
+        label('ACTUALLY HERE', tgt.x, tgt.y + 24, { color: T.ink });
+      }
+      ctx.restore();
+    }
+  }
+  if (a.state === 'distracted' && a.distractPt) {
+    ctx.save(); ctx.strokeStyle = T['t-attention']; ctx.setLineDash([2, 4]); ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(a.distractPt.x, a.distractPt.y); ctx.stroke(); ctx.restore();
+  }
+}
+function drawPath(a) {
+  if (a.state !== 'walking' || !a.path.length) return;
+  ctx.save(); ctx.strokeStyle = a.color; ctx.globalAlpha = 0.55; ctx.lineWidth = 2; ctx.setLineDash([1, 5]); ctx.lineCap = 'round';
+  ctx.beginPath(); ctx.moveTo(a.x, a.y);
+  for (let i = a.pathI; i < a.path.length; i++) ctx.lineTo(a.path[i].x, a.path[i].y);
+  ctx.stroke(); ctx.restore();
+}
+function drawAgent(a) {
+  const isSel = a.id === selId;
+  ctx.save(); ctx.translate(a.x, a.y);
+  ctx.fillStyle = 'rgba(0,0,0,0.13)'; ctx.beginPath(); ctx.ellipse(2, 3, 14, 12, 0, 0, 7); ctx.fill();
+  if (isSel) { ctx.strokeStyle = T.ink; ctx.lineWidth = 1.5; ctx.setLineDash([3, 3]); ctx.beginPath(); ctx.arc(0, 0, 19, 0, 7); ctx.stroke(); ctx.setLineDash([]); }
+  if (a.state === 'acting') {
+    const p = clamp(1 - a.timer / a.actDur, 0, 1);
+    ctx.strokeStyle = a.color; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(0, 0, 17, -Math.PI / 2, -Math.PI / 2 + p * Math.PI * 2); ctx.stroke();
+  }
+  ctx.rotate(a.h);
+  ctx.fillStyle = a.color; ctx.beginPath(); ctx.ellipse(0, 0, 8, 13, 0, 0, 7); ctx.fill();
+  const carry = a.run && [...a.run.flags].find(f => CARRY.has(f));
+  if (carry) { ctx.fillStyle = T.board; ctx.strokeStyle = T.ink; ctx.lineWidth = 1; rr(9, -4, 8, 8, 2); ctx.fill(); ctx.stroke(); }
+  ctx.beginPath(); ctx.arc(1, 0, 7, 0, 7); ctx.fillStyle = T.head; ctx.fill(); ctx.strokeStyle = a.color; ctx.lineWidth = 2; ctx.stroke();
+  ctx.beginPath(); ctx.arc(7, 0, 2, 0, 7); ctx.fillStyle = a.color; ctx.fill();
+  ctx.restore();
+  // name
+  ctx.save(); ctx.font = `700 ${11 * ts}px ${BODY}`; ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+  ctx.lineWidth = 3; ctx.strokeStyle = T.floor; ctx.strokeText(a.name, a.x, a.y + 17); ctx.fillStyle = T.ink; ctx.fillText(a.name, a.x, a.y + 17);
+  ctx.restore();
+  const s = STATUS[a.state];
+  if (s && !a.bubble) {
+    const y = a.y - 26;
+    ctx.save(); ctx.beginPath(); ctx.arc(a.x + 12, y, 8 * ts, 0, 7); ctx.fillStyle = T.surface; ctx.fill(); ctx.strokeStyle = T[s[1]]; ctx.lineWidth = 1.5; ctx.stroke();
+    ctx.fillStyle = T[s[1]]; ctx.font = `700 ${11 * ts}px ${BODY}`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(s[0], a.x + 12, y + 0.5);
+    ctx.restore();
+  }
+}
+function wrap(text, maxW) {
+  const words = text.split(' '), lines = []; let cur = '';
+  for (const w of words) { const t = cur ? cur + ' ' + w : w; if (ctx.measureText(t).width > maxW && cur) { lines.push(cur); cur = w; } else cur = t; }
+  if (cur) lines.push(cur);
+  return lines;
+}
+function drawBubble(a) {
+  const b = a.bubble; if (!b) return;
+  ctx.save();
+  ctx.globalAlpha = clamp(b.t / 0.4, 0, 1) * clamp((b.max - b.t) / 0.15, 0, 1);
+  const fs = 12 * ts, lh = fs * 1.3, pad = 7;
+  ctx.font = `400 ${fs}px ${BODY}`;
+  const lines = wrap(b.text, 160 * ts);
+  const w = Math.max(...lines.map(l => ctx.measureText(l).width)) + pad * 2, h = lines.length * lh + pad * 2 - 2;
+  let x = clamp(a.x - w / 2, 6, W - w - 6), y = a.y - 26 - h, below = false;
+  if (y < 6) { y = a.y + 32 * ts; below = true; }
+  rr(x, y, w, h, 7); ctx.fillStyle = T.bubble; ctx.fill(); ctx.strokeStyle = a.color; ctx.lineWidth = 1.5; ctx.stroke();
+  const tx = clamp(a.x, x + 10, x + w - 10);
+  ctx.beginPath();
+  if (below) { ctx.moveTo(tx - 6, y + 0.5); ctx.lineTo(tx, y - 7); ctx.lineTo(tx + 6, y + 0.5); }
+  else { ctx.moveTo(tx - 6, y + h - 0.5); ctx.lineTo(tx, y + h + 7); ctx.lineTo(tx + 6, y + h - 0.5); }
+  ctx.fillStyle = T.bubble; ctx.fill(); ctx.stroke();
+  ctx.fillStyle = T['bubble-ink']; ctx.textBaseline = 'top';
+  lines.forEach((l, i) => ctx.fillText(l, x + pad, y + pad + i * lh));
+  ctx.restore();
+}
+function draw() {
+  ctx.setTransform(dpr * scale, 0, 0, dpr * scale, 0, 0);
+  drawRoom();
+  const showPaths = $('#pathsChk').checked, showOv = $('#overlayChk').checked, s = sel();
+  if (showPaths) agents.forEach(drawPath);
+  if (showOv && s) { if (!showPaths) drawPath(s); drawOverlay(s); }
+  agents.forEach(drawAgent);
+  agents.forEach(drawBubble);
+}
+
+// ---------- UI ----------
+const logEl = $('#log');
+function passes(e) { if (logFilter === 'events') return e.kind !== 'say' && e.kind !== 'done'; if (logFilter === 'selected') return e.id === selId; return true; }
+function entryHTML(e) {
+  const who = e.name ? `<span class="who" style="color:${e.color}">${esc(e.name)}</span> ` : '';
+  let body;
+  if (e.kind === 'say') body = `${e.lang ? `<span class="tag" style="background:var(--t-language)">${TAGS.language}</span>` : ''}${who}<span class="quote">“${esc(e.text)}”</span>`;
+  else body = `<span class="tag" style="background:var(--t-${e.kind})">${TAGS[e.kind] || e.kind}</span>${who}${esc(e.text)}`;
+  return `<time>${fmt(e.t)}</time><span>${body}</span>`;
+}
+function renderLogEntry(e, prepend) {
+  if (!passes(e)) return;
+  const li = document.createElement('li'); li.innerHTML = entryHTML(e);
+  const empty = logEl.querySelector('.empty'); if (empty) empty.remove();
+  if (prepend) logEl.prepend(li); else logEl.append(li);
+  while (logEl.children.length > 160) logEl.lastChild.remove();
+}
+function renderLog() {
+  logEl.innerHTML = '';
+  const items = LOG.filter(passes).slice(0, 160);
+  if (!items.length) { logEl.innerHTML = '<li class="empty">Nothing yet. Events appear here as people talk and work.</li>'; return; }
+  for (const e of items) renderLogEntry(e, false);
+}
+document.querySelectorAll('[data-filter]').forEach(b => b.addEventListener('click', () => {
+  logFilter = b.dataset.filter;
+  document.querySelectorAll('[data-filter]').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+  renderLog();
+}));
+
+function impSummary(a) {
+  const on = IMPS.filter(i => a.imp[i.k] > 0.02).sort((x, y) => a.imp[y.k] - a.imp[x.k]);
+  if (!on.length) return 'No difficulties';
+  return on.slice(0, 2).map(i => i.short).join(', ') + (on.length > 2 ? ` +${on.length - 2}` : '');
+}
+function renderChips() {
+  $('#chips').innerHTML = agents.map(a => `<button type="button" class="chip" data-id="${a.id}" aria-pressed="${a.id === selId}"><span class="dot" style="background:${a.color}"></span><span>${esc(a.name)}<small>${esc(impSummary(a))}</small></span></button>`).join('');
+  $('#chips').querySelectorAll('.chip').forEach(c => c.addEventListener('click', () => select(+c.dataset.id)));
+  $('#addBtn').disabled = agents.length >= 6;
+}
+const level = v => v === 0 ? 'none' : v < 35 ? 'mild' : v < 70 ? 'moderate' : 'severe';
+function buildEditor() {
+  const a = sel(), ed = $('#editor');
+  if (!a) { ed.innerHTML = '<p class="muted" style="margin:0">Select someone in the room, or add a person.</p>'; return; }
+  ed.innerHTML = `
+    <div class="who-row"><span class="dot" style="background:${a.color};width:16px;height:16px"></span><input id="nameInput" class="name-input" value="${esc(a.name)}" maxlength="14" aria-label="Name"><span class="pill" id="statePill"></span></div>
+    <p class="doing" id="doing"></p>
+    <div class="plan-box"><h3 id="planTitle">Plan</h3><div id="plan"></div></div>
+    <div class="sliders">${IMPS.map(i => `
+      <div class="slider">
+        <div class="slider-head"><label for="imp-${i.k}"><span class="sw" style="background:var(--t-${i.k})"></span>${i.label}</label><output id="out-${i.k}" for="imp-${i.k}"></output></div>
+        <input type="range" id="imp-${i.k}" min="0" max="100" step="5" value="${Math.round(a.imp[i.k] * 100)}" style="accent-color:var(--t-${i.k})">
+        <p class="hint">${i.desc}</p>
+      </div>`).join('')}</div>
+    <div class="row-btns">
+      <button class="btn" type="button" data-preset="none">No difficulties</button>
+      <button class="btn" type="button" data-preset="random">Random mix</button>
+      <button class="btn" type="button" data-preset="all">Copy to everyone</button>
+    </div>
+    <h3 class="sub">Give ${esc(a.name)} a job now</h3>
+    <div class="task-grid">${Object.entries(TASKS).map(([k, t]) => `<button class="btn" type="button" data-task="${k}">${t.name}</button>`).join('')}</div>
+    <div class="row-btns"><button class="btn ghost danger" type="button" id="removeBtn">Remove ${esc(a.name)}</button></div>`;
+  const setOut = k => { const v = Math.round(a.imp[k] * 100); $('#out-' + k).textContent = `${v} · ${level(v)}`; };
+  IMPS.forEach(i => { setOut(i.k); $('#imp-' + i.k).addEventListener('input', e => { a.imp[i.k] = +e.target.value / 100; setOut(i.k); renderChips(); }); });
+  $('#nameInput').addEventListener('input', e => { a.name = e.target.value.trim() || 'Someone'; renderChips(); renderScore(); });
+  ed.querySelectorAll('[data-preset]').forEach(b => b.addEventListener('click', () => {
+    const p = b.dataset.preset;
+    if (p === 'none') a.imp = blank();
+    if (p === 'random') { a.imp = blank(); const ks = IMPS.map(i => i.k).sort(() => rnd() - 0.5).slice(0, 1 + Math.floor(rnd() * 3)); ks.forEach(k => a.imp[k] = Math.round((0.3 + rnd() * 0.6) * 20) / 20); }
+    if (p === 'all') agents.forEach(b2 => { b2.imp = { ...a.imp }; });
+    buildEditor(); renderChips();
+  }));
+  ed.querySelectorAll('[data-task]').forEach(b => b.addEventListener('click', () => { startTask(a, b.dataset.task); log(a, 'support', `was asked to “${TASKS[b.dataset.task].name}”`); refreshLive(); }));
+  $('#removeBtn').addEventListener('click', () => removeAgent(a));
+  refreshLive();
+}
+function select(id) { selId = id; renderChips(); buildEditor(); if (logFilter === 'selected') renderLog(); }
+function describe(a) {
+  const step = a.run && a.run.plan[0], st = step && STATIONS[step.st];
+  switch (a.state) {
+    case 'idle': return 'Deciding what to do next.';
+    case 'thinking': return step ? `Working out the next step: ${step.verb}.` : 'Thinking.';
+    case 'walking':
+      if (a.purpose === 'help') return `Showing ${a.helpFor ? a.helpFor.name : 'someone'} where the ${a.helpSt.label} is.`;
+      if (!st) return 'Walking.';
+      return `Heading to the ${st.label} to ${step.verb}.` + (a.perceived && dist(a.perceived, st) > 28 ? ' They are aiming at the wrong spot.' : '');
+    case 'searching': return `Can't see the ${st ? st.label : 'next place'}. Turning right to look for it.`;
+    case 'waiting': return `Waiting for the ${a.trueT.label} to be free.`;
+    case 'acting': return `${cap(step.verb)} · ${Math.round(clamp(1 - a.timer / a.actDur, 0, 1) * 100)}%`;
+    case 'confused': return 'Has lost track of what they were doing.';
+    case 'distracted': return `Distracted by ${a.distractPt.label}.`;
+    case 'talking': return `Talking with ${a.convoWith ? a.convoWith.name : 'someone'}.`;
+    case 'bumped': return `Recovering after bumping into the ${a.bumpObj}.`;
+  }
+  return '';
+}
+const STATE_LABEL = { idle: 'Idle', thinking: 'Thinking', walking: 'Walking', searching: 'Searching', waiting: 'Waiting', acting: 'Working', confused: 'Lost track', distracted: 'Distracted', talking: 'Talking', bumped: 'Bumped' };
+function refreshLive() {
+  $('#clock').textContent = fmt(simT);
+  const a = sel(); if (!a || !$('#doing')) return;
+  $('#doing').textContent = describe(a);
+  const pill = $('#statePill'); pill.textContent = a.purpose === 'help' && a.state === 'walking' ? 'Helping' : STATE_LABEL[a.state] || a.state;
+  const pt = $('#planTitle'), pl = $('#plan');
+  if (a.run) {
+    const def = a.run.def, total = def.steps.length, doneN = def.steps.filter(s => a.run.done.has(s.verb)).length;
+    pt.textContent = `${def.name} · ${doneN} of ${total} steps done`;
+    const correct = def.steps.filter(s => !a.run.done.has(s.verb)).map(s => s.verb);
+    const html = a.run.plan.map((s, i) => `<li class="${i === 0 ? 'cur' : ''} ${correct[i] !== s.verb ? 'off' : ''}">${esc(s.verb)}</li>`).join('');
+    const doneList = def.steps.filter(s => a.run.done.has(s.verb)).map(s => s.verb);
+    pl.innerHTML = `<ol class="plan">${html || '<li>checking the job is finished</li>'}</ol>${doneList.length ? `<div class="done">Done: ${esc(doneList.join(', '))}</div>` : ''}`;
+    if (a.run.plan.some((s, i) => correct[i] !== s.verb)) pl.insertAdjacentHTML('beforeend', '<div class="done" style="color:var(--t-planning)">Green steps differ from the usual order.</div>');
+  } else { pt.textContent = 'Plan'; pl.innerHTML = '<span class="muted" style="font-size:13px">No job right now.</span>'; }
+}
+function renderScore() {
+  const cols = IMPS.map(i => i.k);
+  let h = `<thead><tr><th>Person</th><th>Jobs</th><th>Avg time</th>${IMPS.map(i => `<th title="${i.label}"><span class="sw" style="background:var(--t-${i.k})"></span>${i.short}</th>`).join('')}<th>Asked help</th><th>Gave up</th></tr></thead><tbody>`;
+  for (const a of agents) {
+    const s = a.stats, td = v => `<td class="${v ? '' : 'zero'}">${v}</td>`;
+    h += `<tr><td><span class="namecell"><span class="dot" style="background:${a.color}"></span>${esc(a.name)}</span></td>${td(s.done)}<td class="${s.done ? '' : 'zero'}">${s.done ? fmt(s.time / s.done) : '–'}</td>${cols.map(k => td(s.ev[k])).join('')}${td(s.help)}${td(s.abandoned)}</tr>`;
+  }
+  $('#score').innerHTML = h + '</tbody>';
+}
+
+function addAgent(spec) {
+  const used = new Set(agents.map(a => a.color));
+  const color = COLORS.find(c => !used.has(c)) || pick(COLORS);
+  const usedN = new Set(agents.map(a => a.name));
+  const name = spec && spec.name || NAMES.find(n => !usedN.has(n)) || 'Guest';
+  let pos = STARTS.find(p => !agents.some(a => dist(a, p) < 40)) || { x: 480, y: 450 };
+  if (blockedAt(pos.x, pos.y, R)) pos = { x: 480, y: 450 };
+  const a = makeAgent(name, color, pos, spec ? spec.imp : {});
+  agents.push(a);
+  return a;
+}
+function removeAgent(a) {
+  detachConvo(a); release(a);
+  agents.forEach(b => { if (b.helpFor === a) { b.helpFor = null; b.purpose = 'step'; resume(b); } });
+  agents = agents.filter(x => x !== a);
+  selId = agents.length ? agents[0].id : null;
+  renderChips(); buildEditor(); renderScore();
+}
+function restart(keep) {
+  const specs = keep ? agents.map(a => ({ name: a.name, imp: { ...a.imp }, color: a.color })) : DEFAULTS.map(d => ({ ...d, imp: { ...d.imp } }));
+  agents = []; convos = []; SPEECH = []; LOG = []; pairCD = {}; simT = 0;
+  Object.assign(world, { tea: 0, notes: 0, books: 0, mail: 0, plantT: -99 });
+  for (const k in STATIONS) STATIONS[k].users.clear();
+  specs.forEach(s => { const a = addAgent(s); if (s.color) a.color = s.color; });
+  selId = agents.length ? agents[0].id : null;
+  renderChips(); buildEditor(); renderScore(); renderLog();
+}
+
+$('#playBtn').addEventListener('click', () => { running = !running; $('#playBtn').textContent = running ? 'Pause' : 'Play'; });
+document.querySelectorAll('[data-speed]').forEach(b => b.addEventListener('click', () => {
+  speed = +b.dataset.speed; document.querySelectorAll('[data-speed]').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+}));
+$('#restartBtn').addEventListener('click', () => restart(true));
+$('#addBtn').addEventListener('click', () => { if (agents.length >= 6) return; const a = addAgent(null); select(a.id); renderScore(); });
+$('#clearStats').addEventListener('click', () => { agents.forEach(a => a.stats = newStats()); renderScore(); });
+$('#allTask').innerHTML = Object.entries(TASKS).map(([k, t]) => `<option value="${k}">${t.name}</option>`).join('');
+$('#allGo').addEventListener('click', () => {
+  const k = $('#allTask').value;
+  agents.forEach(a => startTask(a, k, false));
+  log(null, 'support', `Everyone was asked to “${TASKS[k].name}” at the same time`);
+});
+canvas.addEventListener('click', e => {
+  const r = canvas.getBoundingClientRect(), x = (e.clientX - r.left) / scale, y = (e.clientY - r.top) / scale;
+  let best = null, bd = 30;
+  for (const a of agents) { const d = Math.hypot(a.x - x, a.y - y); if (d < bd) { bd = d; best = a; } }
+  if (best) select(best.id);
+});
+canvas.addEventListener('keydown', e => {
+  if (e.key === 'Tab' || !agents.length) return;
+  if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+    const i = agents.findIndex(a => a.id === selId), n = agents.length;
+    select(agents[(i + (e.key === 'ArrowRight' ? 1 : n - 1)) % n].id); e.preventDefault();
+  }
+});
+
+$('#supports').innerHTML = SUPPORTS.map(s => `<label class="support" for="sup-${s.k}"><input type="checkbox" id="sup-${s.k}"><b>${s.name}</b><span>${s.desc}</span></label>`).join('');
+SUPPORTS.forEach(s => $('#sup-' + s.k).addEventListener('change', e => {
+  supports[s.k] = e.target.checked;
+  if (s.k === 'clear') { rebuildObs(); agents.forEach(a => { if (a.state === 'walking') planPath(a); }); }
+  log(null, 'support', `${s.name} turned ${e.target.checked ? 'on' : 'off'}`);
+}));
+
+$('#legend').innerHTML = IMPS.map(i => `<span class="legend-item"><span class="sw" style="background:var(--t-${i.k})"></span>${i.short}</span>`).join('') +
+  '<span class="legend-item">· Dashed ring: clearance they plan for · ✕: where they think the target is · Click a person to select, arrow keys to switch</span>';
+
+const RULES = [
+  ['spatial', 'Spatial perception', 'When heading somewhere, they aim at a spot up to <code>severity × 120 px</code> (about 1.5 m) from the real place. On arrival they notice, and the next guess is 55% closer. They also plan routes with less clearance (18 px down to 5 px, against a 12 px body), so they clip corners and bump into furniture.'],
+  ['field', 'Visual field (left side)', 'If the next place is more than 20° to their left, there is a <code>severity × 85%</code> chance they don\'t see it. They turn right to scan and try again, up to three times. The shaded wedge in the overlay is the side they tend to miss.'],
+  ['motor', 'Movement', 'Walking speed drops by up to 55% and a side-to-side wobble is added, which can push them into things. Hand tasks take up to 2.3× as long, and each attempt has up to a <code>40%</code> chance to slip and need redoing.'],
+  ['attention', 'Attention', 'Each second there is up to an <code>8%</code> chance something in the room pulls them away, and each voice within 3.5 m has up to a 40% chance. They miss up to half of what\'s said to them. A distraction mid-task throws away the action in progress.'],
+  ['language', 'Language', 'Each content word has up to a <code>50%</code> chance of a word-finding pause, a swapped related word (kettle → pot), a vague "thing", or a false start. Above 55%, small words start dropping out. They are slower to start talking and misunderstand up to 55% of what they hear.'],
+  ['planning', 'Planning', 'When starting a job, neighbouring steps can swap (up to 35% each) or drop out (up to 18%). The slip shows when a step can\'t work yet, such as pouring before boiling, and they backtrack. Starting each step takes up to 1.6 s longer, and they sometimes repeat the step they just finished.'],
+  ['memory', 'Memory', 'While walking, up to a <code>9%</code> chance per second of losing the goal. After a pause they recall it, or else restart the job or give up. They may forget a step is already done, forget names when greeting, and lose the thread after a distraction.'],
+  ['support', 'Help and cues', 'After three setbacks on one job, a person may ask the least-affected person nearby for help. The helper walks to the place (using their own perception, so they can be wrong too). That cue cuts the asker\'s spatial, memory and planning slips for the rest of the job.']
+];
+$('#rules').innerHTML = RULES.map(([k, t, p]) => `<div class="rule"><h3><span class="sw" style="background:var(--t-${k})"></span>${t}</h3><p>${p}</p></div>`).join('');
+
+// ---------- Loop ----------
+restart(false);
+let last = performance.now(), uiT = 0, scoreT = 0;
+function frame(now) {
+  const dt = Math.min(0.1, (now - last) / 1000); last = now;
+  if (running) { let sdt = dt * speed; while (sdt > 1e-6) { const s = Math.min(0.033, sdt); tick(s); sdt -= s; } }
+  draw();
+  uiT += dt; scoreT += dt;
+  if (uiT > 0.25) { uiT = 0; refreshLive(); }
+  if (scoreT > 0.6) { scoreT = 0; renderScore(); }
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
