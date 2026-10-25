@@ -136,7 +136,61 @@ table.score th .sw{width:8px;height:8px;margin-right:3px;vertical-align:0}
 .rule code{font:12px var(--f-mono)}
 .disclaimer{max-width:80ch;color:var(--muted);font-size:13px;margin:14px 0 0}
 .muted{color:var(--muted)}
-@media (prefers-reduced-motion: reduce){*{scroll-behavior:auto!important}}
+/* Brain detective */
+:root{
+  --brain-hi:#F7DED7; --brain-lo:#DCA79E; --brain-line:#9E665E; --hl:#F2A100; --hl-line:#A86400; --hl-soft:rgba(242,161,0,.20); --scrim:rgba(12,22,26,.58);
+  --lobe-frontal:#E7A397; --lobe-parietal:#EBC195; --lobe-temporal:#DCA3BE; --lobe-occipital:#C7B0DE;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--brain-hi:#D3A49C; --brain-lo:#86584F; --brain-line:#3C2421; --hl:#FFC23D; --hl-line:#FFD883; --hl-soft:rgba(255,194,61,.16); --scrim:rgba(0,0,0,.68)}}
+:root[data-theme="dark"]{--brain-hi:#D3A49C; --brain-lo:#86584F; --brain-line:#3C2421; --hl:#FFC23D; --hl-line:#FFD883; --hl-soft:rgba(255,194,61,.16); --scrim:rgba(0,0,0,.68)}
+.score-pill{font:600 12px var(--f-mono);font-variant-numeric:tabular-nums;padding:5px 9px;border-radius:999px;background:var(--hl-soft);color:var(--ink);border:1px solid var(--hl-line)}
+.g-intro,.g-status{margin:0 0 12px;font-size:14px}
+.g-status.ok{font-weight:700;color:var(--hl-line)}
+.g-msg{margin:0 0 12px;font-size:13px;padding:8px 10px;border-radius:6px;background:var(--surface-2);border:1px solid var(--line)}
+.regions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+@media (max-width:420px){.regions{grid-template-columns:minmax(0,1fr)}}
+.region{display:grid;grid-template-columns:62px minmax(0,1fr);gap:8px;align-items:center;text-align:left;padding:6px 8px;border:1px solid var(--line);background:var(--surface-2);border-radius:8px;cursor:pointer;color:var(--ink);font:inherit}
+.region .brain{width:62px}
+.region b{display:block;font-size:13px;line-height:1.2}
+.region small{display:block;font-size:11px;color:var(--muted);line-height:1.3;margin-top:2px}
+.region:hover:not([disabled]){border-color:var(--hl-line)}
+.region:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.region[disabled]{cursor:default}
+.region.wrong{opacity:.45}
+.region.wrong b{text-decoration:line-through}
+.region.right{border-color:var(--hl-line);box-shadow:inset 0 0 0 1px var(--hl-line);background:var(--hl-soft)}
+.atlas-row{display:flex;flex-wrap:wrap;gap:6px}
+.atlas-chip{font:700 12px var(--f-body);padding:6px 10px;border-radius:999px;border:1px solid var(--hl-line);background:var(--hl-soft);color:var(--ink);cursor:pointer}
+.mystery-note{background:var(--surface-2);border:1px dashed var(--furn-line);border-radius:8px;padding:12px;font-size:13px;margin:0}
+.brain{display:block;width:100%;height:auto}
+.brain .part{stroke:var(--brain-line);stroke-width:2}
+.brain .edge{fill:none;stroke:var(--brain-line);stroke-width:2.6}
+.brain .sulc{fill:none;stroke:var(--brain-line);stroke-width:2.2;stroke-linecap:round;opacity:.5}
+.brain .sulc.big{stroke-width:3.4;opacity:.7}
+.brain .lobe{opacity:.38}
+.brain.has-hl .lobe{opacity:.16}
+.brain .hl{fill:var(--hl);opacity:.92}
+.brain .hl.deep{stroke:var(--hl-line);stroke-width:2.5;stroke-dasharray:6 4}
+.brain .arc{fill:none;stroke:var(--hl-line);stroke-width:3.5;stroke-dasharray:1 8;stroke-linecap:round}
+.brain .lead{fill:none;stroke:var(--ink);stroke-width:1.5}
+.brain .pin{fill:var(--ink);stroke:var(--surface);stroke-width:2}
+.brain .lbl{font:700 22px var(--f-display);fill:var(--ink);paint-order:stroke;stroke:var(--surface-2);stroke-width:6px;stroke-linejoin:round}
+.brain .lbl2{font:400 15px var(--f-body);fill:var(--muted);paint-order:stroke;stroke:var(--surface-2);stroke-width:5px}
+.brain .orient{font:600 12px var(--f-mono);letter-spacing:.12em;fill:var(--muted)}
+.brain.full .hl{animation:hlpulse 2.4s ease-in-out infinite}
+@keyframes hlpulse{50%{opacity:.6}}
+.modal{position:fixed;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;background:var(--scrim);padding-top:max(16px, env(safe-area-inset-top, 0px));padding-bottom:max(16px, env(safe-area-inset-bottom, 0px));padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px))}
+.modal-card{background:var(--surface);border:1px solid var(--line);border-radius:14px;width:100%;max-width:1000px;max-height:100%;overflow:auto;display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);box-shadow:0 24px 60px rgba(0,0,0,.3)}
+@media (max-width:780px){.modal-card{grid-template-columns:minmax(0,1fr)}}
+.reveal-art{display:flex;align-items:center;justify-content:center;padding:28px 20px;background:radial-gradient(circle at 50% 48%, var(--hl-soft), transparent 62%), var(--surface-2);min-width:0}
+.reveal-text{padding:28px 28px 24px;min-width:0}
+.eyebrow{font:600 11px var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--hl-line);margin:0}
+.reveal-text h2{font:700 clamp(26px,3.2vw,36px)/1.05 var(--f-display);letter-spacing:-0.02em;margin:8px 0 12px;text-wrap:balance}
+.reveal-text p{margin:0 0 12px;max-width:60ch}
+.reveal-text h3{font:600 11px var(--f-mono);letter-spacing:.07em;text-transform:uppercase;color:var(--muted);margin:18px 0 8px}
+.reveal-text ul{margin:0;padding-left:18px;font-size:14px}
+.reveal-text li{margin-bottom:4px}
+@media (prefers-reduced-motion: reduce){*{scroll-behavior:auto!important}.brain.full .hl{animation:none}}
 </style>
 </head>
 <body>
@@ -145,7 +199,7 @@ table.score th .sw{width:8px;height:8px;margin-right:3px;vertical-align:0}
   <header class="top">
     <div>
       <h1>Common Room Lab</h1>
-      <p class="lede">Up to six people share a kitchen-lounge, chat, and get on with everyday jobs. Give each of them a different mix of perceptual, motor and cognitive difficulties, then watch how their routes, conversations and plans change.</p>
+      <p class="lede">Up to six people share a kitchen-lounge, chat, and get on with everyday jobs. Give each of them a different mix of perceptual, motor and cognitive difficulties, then watch how their routes, conversations and plans change. Or play Brain detective: spot which part of the brain is behind someone's hidden difficulty.</p>
     </div>
     <div class="scale-note">Floor plan ≈ 11.6 × 7.1 m · grid square = 0.5 m</div>
   </header>
@@ -198,6 +252,10 @@ table.score th .sw{width:8px;height:8px;margin-right:3px;vertical-align:0}
     </div>
 
     <aside class="col">
+      <section class="card" id="gameCard">
+        <div class="card-h"><h2>Brain detective</h2><span class="score-pill" id="gScore">Score 0</span></div>
+        <div class="card-b" id="gameBody"></div>
+      </section>
       <section class="card">
         <div class="card-h"><h2>People in the room</h2><button class="btn" id="addBtn" type="button">Add person</button></div>
         <div class="card-b"><div class="chips" id="chips"></div></div>
@@ -217,6 +275,25 @@ table.score th .sw{width:8px;height:8px;margin-right:3px;vertical-align:0}
       <p class="disclaimer">These are deliberately simple teaching models built from rules and dice rolls. They are not clinical descriptions of any condition. Real people adapt, use strategies, and vary from day to day. The point is to see how a single difficulty ripples through an ordinary task, and how small changes to the room can soften it.</p>
     </div>
   </section>
+</div>
+
+<div class="modal" id="reveal" hidden role="dialog" aria-modal="true" aria-labelledby="revealTitle">
+  <div class="modal-card">
+    <div class="reveal-art" id="revealArt"></div>
+    <div class="reveal-text">
+      <p class="eyebrow" id="revealEyebrow"></p>
+      <h2 id="revealTitle"></h2>
+      <p id="revealRole"></p>
+      <h3>What you saw in the room</h3>
+      <ul id="revealSaw"></ul>
+      <h3>Good to know</h3>
+      <p class="hint" id="revealNote"></p>
+      <div class="row-btns">
+        <button class="btn primary" type="button" id="revealNext">Next case</button>
+        <button class="btn" type="button" id="revealClose">Keep watching</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -410,6 +487,9 @@ function makeAgent(name, color, pos, imp) {
     perceived: null, trueT: null, convoWith: null, slot: null, actDur: 1, distractPt: null, bumpObj: '', helpFor: null, helpSt: null };
 }
 const sel = () => agents.find(a => a.id === selId);
+const game = { active: false, caseId: null, answer: null, solved: false, tries: 0, wrong: new Set(), round: 0, score: 0, found: new Set(), lastKey: null, msg: '', lastPoints: 0 };
+const hiddenId = id => game.active && !game.solved && id === game.caseId;
+const hidden = a => !!a && hiddenId(a.id);
 
 // effective severities after room supports and cues
 const effSpatial = a => a.imp.spatial * (supports.labels ? 0.4 : 1) * (a.cue ? 0.35 : 1);
@@ -1075,7 +1155,7 @@ function drawAgent(a) {
   ctx.save(); ctx.font = `700 ${11 * ts}px ${BODY}`; ctx.textAlign = 'center'; ctx.textBaseline = 'top';
   ctx.lineWidth = 3; ctx.strokeStyle = T.floor; ctx.strokeText(a.name, a.x, a.y + 17); ctx.fillStyle = T.ink; ctx.fillText(a.name, a.x, a.y + 17);
   ctx.restore();
-  const s = STATUS[a.state];
+  const s0 = STATUS[a.state], s = s0 && hidden(a) ? [s0[0], 'muted'] : s0;
   if (s && !a.bubble) {
     const y = a.y - 26;
     ctx.save(); ctx.beginPath(); ctx.arc(a.x + 12, y, 8 * ts, 0, 7); ctx.fillStyle = T.surface; ctx.fill(); ctx.strokeStyle = T[s[1]]; ctx.lineWidth = 1.5; ctx.stroke();
@@ -1114,7 +1194,7 @@ function draw() {
   drawRoom();
   const showPaths = $('#pathsChk').checked, showOv = $('#overlayChk').checked, s = sel();
   if (showPaths) agents.forEach(drawPath);
-  if (showOv && s) { if (!showPaths) drawPath(s); drawOverlay(s); }
+  if (showOv && s && !hidden(s)) { if (!showPaths) drawPath(s); drawOverlay(s); }
   agents.forEach(drawAgent);
   agents.forEach(drawBubble);
 }
@@ -1125,7 +1205,9 @@ function passes(e) { if (logFilter === 'events') return e.kind !== 'say' && e.ki
 function entryHTML(e) {
   const who = e.name ? `<span class="who" style="color:${e.color}">${esc(e.name)}</span> ` : '';
   let body;
-  if (e.kind === 'say') body = `${e.lang ? `<span class="tag" style="background:var(--t-language)">${TAGS.language}</span>` : ''}${who}<span class="quote">“${esc(e.text)}”</span>`;
+  const hid = hiddenId(e.id);
+  if (e.kind === 'say') body = `${e.lang && !hid ? `<span class="tag" style="background:var(--t-language)">${TAGS.language}</span>` : ''}${who}<span class="quote">“${esc(e.text)}”</span>`;
+  else if (hid && e.kind in blank()) body = `<span class="tag" style="background:var(--muted)">Clue</span>${who}${esc(e.text)}`;
   else body = `<span class="tag" style="background:var(--t-${e.kind})">${TAGS[e.kind] || e.kind}</span>${who}${esc(e.text)}`;
   return `<time>${fmt(e.t)}</time><span>${body}</span>`;
 }
@@ -1149,6 +1231,7 @@ document.querySelectorAll('[data-filter]').forEach(b => b.addEventListener('clic
 }));
 
 function impSummary(a) {
+  if (hidden(a)) return 'Hidden difficulty';
   const on = IMPS.filter(i => a.imp[i.k] > 0.02).sort((x, y) => a.imp[y.k] - a.imp[x.k]);
   if (!on.length) return 'No difficulties';
   return on.slice(0, 2).map(i => i.short).join(', ') + (on.length > 2 ? ` +${on.length - 2}` : '');
@@ -1166,7 +1249,7 @@ function buildEditor() {
     <div class="who-row"><span class="dot" style="background:${a.color};width:16px;height:16px"></span><input id="nameInput" class="name-input" value="${esc(a.name)}" maxlength="14" aria-label="Name"><span class="pill" id="statePill"></span></div>
     <p class="doing" id="doing"></p>
     <div class="plan-box"><h3 id="planTitle">Plan</h3><div id="plan"></div></div>
-    <div class="sliders">${IMPS.map(i => `
+    ${hidden(a) ? `<p class="mystery-note">${esc(a.name)}'s difficulty is hidden. Compare them with the others, or give them a job below to test an idea. Long jobs like Make tea show planning and memory. Walking across the room shows movement and judging space.</p>` : `<div class="sliders">${IMPS.map(i => `
       <div class="slider">
         <div class="slider-head"><label for="imp-${i.k}"><span class="sw" style="background:var(--t-${i.k})"></span>${i.label}</label><output id="out-${i.k}" for="imp-${i.k}"></output></div>
         <input type="range" id="imp-${i.k}" min="0" max="100" step="5" value="${Math.round(a.imp[i.k] * 100)}" style="accent-color:var(--t-${i.k})">
@@ -1175,13 +1258,13 @@ function buildEditor() {
     <div class="row-btns">
       <button class="btn" type="button" data-preset="none">No difficulties</button>
       <button class="btn" type="button" data-preset="random">Random mix</button>
-      <button class="btn" type="button" data-preset="all">Copy to everyone</button>
-    </div>
+      ${game.active ? '' : '<button class="btn" type="button" data-preset="all">Copy to everyone</button>'}
+    </div>`}
     <h3 class="sub">Give ${esc(a.name)} a job now</h3>
     <div class="task-grid">${Object.entries(TASKS).map(([k, t]) => `<button class="btn" type="button" data-task="${k}">${t.name}</button>`).join('')}</div>
-    <div class="row-btns"><button class="btn ghost danger" type="button" id="removeBtn">Remove ${esc(a.name)}</button></div>`;
+    ${a.id === game.caseId && game.active ? '' : `<div class="row-btns"><button class="btn ghost danger" type="button" id="removeBtn">Remove ${esc(a.name)}</button></div>`}`;
   const setOut = k => { const v = Math.round(a.imp[k] * 100); $('#out-' + k).textContent = `${v} · ${level(v)}`; };
-  IMPS.forEach(i => { setOut(i.k); $('#imp-' + i.k).addEventListener('input', e => { a.imp[i.k] = +e.target.value / 100; setOut(i.k); renderChips(); }); });
+  if (!hidden(a)) IMPS.forEach(i => { setOut(i.k); $('#imp-' + i.k).addEventListener('input', e => { a.imp[i.k] = +e.target.value / 100; setOut(i.k); renderChips(); }); });
   $('#nameInput').addEventListener('input', e => { a.name = e.target.value.trim() || 'Someone'; renderChips(); renderScore(); });
   ed.querySelectorAll('[data-preset]').forEach(b => b.addEventListener('click', () => {
     const p = b.dataset.preset;
@@ -1191,7 +1274,7 @@ function buildEditor() {
     buildEditor(); renderChips();
   }));
   ed.querySelectorAll('[data-task]').forEach(b => b.addEventListener('click', () => { startTask(a, b.dataset.task); log(a, 'support', `was asked to “${TASKS[b.dataset.task].name}”`); refreshLive(); }));
-  $('#removeBtn').addEventListener('click', () => removeAgent(a));
+  if ($('#removeBtn')) $('#removeBtn').addEventListener('click', () => removeAgent(a));
   refreshLive();
 }
 function select(id) { selId = id; renderChips(); buildEditor(); if (logFilter === 'selected') renderLog(); }
@@ -1203,7 +1286,7 @@ function describe(a) {
     case 'walking':
       if (a.purpose === 'help') return `Showing ${a.helpFor ? a.helpFor.name : 'someone'} where the ${a.helpSt.label} is.`;
       if (!st) return 'Walking.';
-      return `Heading to the ${st.label} to ${step.verb}.` + (a.perceived && dist(a.perceived, st) > 28 ? ' They are aiming at the wrong spot.' : '');
+      return `Heading to the ${st.label} to ${step.verb}.` + (!hidden(a) && a.perceived && dist(a.perceived, st) > 28 ? ' They are aiming at the wrong spot.' : '');
     case 'searching': return `Can't see the ${st ? st.label : 'next place'}. Turning right to look for it.`;
     case 'waiting': return `Waiting for the ${a.trueT.label} to be free.`;
     case 'acting': return `${cap(step.verb)} · ${Math.round(clamp(1 - a.timer / a.actDur, 0, 1) * 100)}%`;
@@ -1236,7 +1319,7 @@ function renderScore() {
   let h = `<thead><tr><th>Person</th><th>Jobs</th><th>Avg time</th>${IMPS.map(i => `<th title="${i.label}"><span class="sw" style="background:var(--t-${i.k})"></span>${i.short}</th>`).join('')}<th>Asked help</th><th>Gave up</th></tr></thead><tbody>`;
   for (const a of agents) {
     const s = a.stats, td = v => `<td class="${v ? '' : 'zero'}">${v}</td>`;
-    h += `<tr><td><span class="namecell"><span class="dot" style="background:${a.color}"></span>${esc(a.name)}</span></td>${td(s.done)}<td class="${s.done ? '' : 'zero'}">${s.done ? fmt(s.time / s.done) : '–'}</td>${cols.map(k => td(s.ev[k])).join('')}${td(s.help)}${td(s.abandoned)}</tr>`;
+    h += `<tr><td><span class="namecell"><span class="dot" style="background:${a.color}"></span>${esc(a.name)}</span></td>${td(s.done)}<td class="${s.done ? '' : 'zero'}">${s.done ? fmt(s.time / s.done) : '–'}</td>${cols.map(k => hidden(a) ? '<td class="zero">?</td>' : td(s.ev[k])).join('')}${td(s.help)}${td(s.abandoned)}</tr>`;
   }
   $('#score').innerHTML = h + '</tbody>';
 }
@@ -1259,21 +1342,23 @@ function removeAgent(a) {
   selId = agents.length ? agents[0].id : null;
   renderChips(); buildEditor(); renderScore();
 }
-function restart(keep) {
-  const specs = keep ? agents.map(a => ({ name: a.name, imp: { ...a.imp }, color: a.color })) : DEFAULTS.map(d => ({ ...d, imp: { ...d.imp } }));
+const currentSpecs = () => agents.map(a => ({ name: a.name, imp: { ...a.imp }, color: a.color, mystery: a.id === game.caseId }));
+const defaultSpecs = () => DEFAULTS.map(d => ({ ...d, imp: { ...d.imp } }));
+function restart(specs) {
+  game.caseId = null;
   agents = []; convos = []; SPEECH = []; LOG = []; pairCD = {}; simT = 0;
   Object.assign(world, { tea: 0, notes: 0, books: 0, mail: 0, plantT: -99 });
   for (const k in STATIONS) STATIONS[k].users.clear();
-  specs.forEach(s => { const a = addAgent(s); if (s.color) a.color = s.color; });
-  selId = agents.length ? agents[0].id : null;
-  renderChips(); buildEditor(); renderScore(); renderLog();
+  specs.forEach(s => { const a = addAgent(s); if (s.color) a.color = s.color; if (s.mystery) { game.caseId = a.id; a.timer = 0.4; } });
+  selId = game.caseId || (agents.length ? agents[0].id : null);
+  renderChips(); buildEditor(); renderScore(); renderLog(); renderGame();
 }
 
 $('#playBtn').addEventListener('click', () => { running = !running; $('#playBtn').textContent = running ? 'Pause' : 'Play'; });
 document.querySelectorAll('[data-speed]').forEach(b => b.addEventListener('click', () => {
   speed = +b.dataset.speed; document.querySelectorAll('[data-speed]').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
 }));
-$('#restartBtn').addEventListener('click', () => restart(true));
+$('#restartBtn').addEventListener('click', () => restart(currentSpecs()));
 $('#addBtn').addEventListener('click', () => { if (agents.length >= 6) return; const a = addAgent(null); select(a.id); renderScore(); });
 $('#clearStats').addEventListener('click', () => { agents.forEach(a => a.stats = newStats()); renderScore(); });
 $('#allTask').innerHTML = Object.entries(TASKS).map(([k, t]) => `<option value="${k}">${t.name}</option>`).join('');
@@ -1319,7 +1404,176 @@ const RULES = [
 $('#rules').innerHTML = RULES.map(([k, t, p]) => `<div class="rule"><h3><span class="sw" style="background:var(--t-${k})"></span>${t}</h3><p>${p}</p></div>`).join('');
 
 // ---------- Loop ----------
-restart(false);
+// ---------- Brain detective ----------
+const REGIONS = {
+  parietal: { name: 'Parietal lobe', imp: 'spatial', short: 'Sense of space and distance',
+    role: 'Builds your sense of space: where objects are, how far away they are, and where your body is among them.',
+    signs: 'Walks confidently to the wrong spot, then has to look again. Cuts corners and bumps into furniture.',
+    note: 'Problems judging space most often come from the right parietal lobe.', anchor: [404, 112], lbl: [440, -14, 'start'] },
+  occipital: { name: 'Occipital lobe', imp: 'field', short: 'Vision, each half of the view',
+    role: 'The visual cortex at the back of the head. It turns signals from the eyes into what you see. Each side handles the opposite half of the view.',
+    signs: 'Misses things on their left, then turns to the right to search for them.',
+    note: 'Damage to the right visual cortex can blank out the left half of what you see. A similar left-side blind spot can also come from the right parietal lobe, which is called neglect.', anchor: [516, 232], lbl: [614, 40, 'end'] },
+  cerebellum: { name: 'Cerebellum', imp: 'motor', short: 'Smooth, steady movement',
+    role: 'The “little brain” at the back and bottom. It coordinates movement and balance, smoothing out each step and hand action.',
+    signs: 'Walks slowly with a wobble, takes longer over hand jobs, and fumbles or drops things.',
+    note: 'The motor cortex, a strip just in front of the central groove, starts movements. The cerebellum keeps them smooth and accurate.', anchor: [462, 362], lbl: [614, 436, 'end'] },
+  thalamus: { name: 'Thalamus', imp: 'attention', deep: true, short: 'Filters what grabs your focus',
+    role: 'A relay hub deep in the middle of the brain. It filters incoming sights and sounds so you can stay focused on one thing.',
+    signs: 'Drifts off mid-task toward voices or things in the room, and sometimes doesn’t notice being spoken to.',
+    note: 'Attention also depends on networks in the frontal and parietal lobes. The thalamus is the gate that decides what gets through to them.', anchor: [318, 205], lbl: [300, -24, 'middle'] },
+  language: { name: 'Broca’s and Wernicke’s areas', imp: 'language', short: 'Finding and understanding words',
+    role: 'Broca’s area, near the front, helps you produce words and sentences. Wernicke’s area, further back, helps you understand them. A bundle of fibres links the two.',
+    signs: 'Pauses to find words, swaps in related words, drops small words, and misunderstands what others say.',
+    note: 'For most people both areas are on the left side of the brain.', anchor: [210, 236], lbl: [-4, 404, 'start'], anchor2: [386, 266], lbl2: [330, 440, 'middle'] },
+  prefrontal: { name: 'Prefrontal cortex', imp: 'planning', short: 'Planning and step order',
+    role: 'The front of the brain, behind the forehead. It plans, orders and checks multi-step actions, like knowing to boil the water before pouring the tea.',
+    signs: 'Does steps in the wrong order or skips them, finds out when something fails, then backtracks.',
+    note: 'It is the last part of the brain to finish developing, in a person’s mid-twenties.', anchor: [150, 150], lbl: [6, -14, 'start'] },
+  hippocampus: { name: 'Hippocampus', imp: 'memory', deep: true, short: 'New memories, keeping track',
+    role: 'A curved structure tucked inside the temporal lobe. It forms new memories and holds on to what you were in the middle of doing.',
+    signs: 'Stops halfway and forgets why, repeats steps already done, and forgets people’s names.',
+    note: 'There is one on each side of the brain. Its curled shape gave it its name, from the Greek for seahorse.', anchor: [266, 314], lbl: [40, 440, 'start'] }
+};
+const BR = {
+  cer: 'M70,250 C52,190 80,118 148,78 C214,40 304,28 378,44 C452,60 516,104 543,166 C562,210 556,262 530,292 C512,312 486,322 456,320 C430,318 410,306 388,300 C360,296 340,312 318,330 C296,348 262,354 232,346 C204,338 186,318 170,300 C150,296 128,300 108,292 C86,284 74,270 70,250 Z',
+  cbl: 'M396,304 C424,298 472,310 502,326 C528,340 526,372 500,386 C470,400 424,398 398,382 C374,368 370,328 396,304 Z',
+  stem: 'M346,314 C360,336 366,372 362,418 L332,418 C332,382 326,350 316,330 Z',
+  lobes: {
+    frontal: 'M-10,-10 L332,-10 L314,90 L290,168 L284,242 L176,266 L-10,310Z',
+    parietal: 'M332,-10 L480,-10 L470,118 L482,252 L352,252 L284,242 L290,168 L314,90Z',
+    occipital: 'M480,-10 L640,-10 L640,440 L440,440 L482,252 L470,118Z',
+    temporal: 'M-10,310 L176,266 L284,242 L352,252 L482,252 L440,440 L-10,440Z'
+  },
+  thal: 'M284,205 C284,190 300,182 320,182 C342,182 354,194 352,208 C350,222 334,228 316,227 C296,226 284,218 284,205Z',
+  hippo: 'M222,314 C244,300 282,298 308,306 C322,311 324,324 310,328 C294,324 276,320 262,324 C246,328 228,328 222,314Z',
+  sylvian: 'M172,266 C226,254 290,244 352,252 C382,256 402,246 420,230',
+  sulci: [
+    'M332,40 C320,88 302,128 290,168 C282,194 280,216 284,242',
+    'M300,38 C288,84 270,124 260,166 C254,190 252,210 254,236',
+    'M364,46 C352,92 336,134 326,172 C320,196 320,220 324,246',
+    'M118,112 C160,96 210,88 262,94', 'M96,162 C140,150 190,146 240,154', 'M90,214 C128,206 170,206 214,214',
+    'M150,120 C160,140 158,160 150,178', 'M202,160 C212,178 212,196 206,212', 'M110,250 C124,236 144,232 160,242',
+    'M190,296 C246,284 310,276 372,282 C400,284 420,276 440,268', 'M214,322 C260,314 300,306 340,302',
+    'M352,180 C390,160 430,150 470,152', 'M402,88 C422,110 426,130 420,150', 'M478,70 C470,90 466,104 470,118',
+    'M482,150 C502,170 514,196 516,224', 'M470,232 C490,250 500,272 498,294', 'M410,200 C430,214 440,232 436,250'
+  ],
+  folia: [0, 1, 2, 3, 4, 5, 6].map(i => `M372,${316 + i * 12} C420,${304 + i * 12} 476,${316 + i * 12} 532,${336 + i * 12}`)
+};
+let svgN = 0;
+function brainSVG(key, full) {
+  const p = 'bv' + (svgN++), r = key ? REGIONS[key] : null, glow = full ? ` filter="url(#${p}f)"` : '';
+  const g = [`<svg class="brain ${full ? 'full' : 'thumb'}${r ? ' has-hl' : ''}" viewBox="${full ? '-20 -50 660 530' : '44 24 528 400'}" role="img" aria-label="${r ? esc(r.name) + ' highlighted on a side view of the brain' : 'Side view of the brain'}">`,
+    `<defs><radialGradient id="${p}g" cx="0.38" cy="0.3" r="0.8"><stop offset="0" style="stop-color:var(--brain-hi)"/><stop offset="1" style="stop-color:var(--brain-lo)"/></radialGradient>`,
+    `<clipPath id="${p}c"><path d="${BR.cer}"/></clipPath><clipPath id="${p}k"><path d="${BR.cbl}"/></clipPath>`,
+    `<filter id="${p}f" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur in="SourceGraphic" stdDeviation="7" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>`,
+    `<path d="${BR.stem}" fill="url(#${p}g)" class="part"/>`,
+    `<path d="${BR.cbl}" fill="url(#${p}g)" class="part"/>`];
+  if (key === 'cerebellum') g.push(`<path d="${BR.cbl}" class="hl"${glow}/>`);
+  g.push(`<g clip-path="url(#${p}k)">${BR.folia.map(d => `<path d="${d}" class="sulc"/>`).join('')}</g>`);
+  g.push(`<path d="${BR.cer}" fill="url(#${p}g)"/><g clip-path="url(#${p}c)">`);
+  for (const k in BR.lobes) g.push(`<path d="${BR.lobes[k]}" class="lobe" style="fill:var(--lobe-${k})"/>`);
+  if (key === 'prefrontal') g.push(`<path d="M-10,-10 L262,-10 L248,120 L238,256 L176,266 L-10,310Z" class="hl"${glow}/>`);
+  if (key === 'parietal' || key === 'occipital') g.push(`<path d="${BR.lobes[key]}" class="hl"${glow}/>`);
+  if (key === 'language') g.push(`<ellipse cx="210" cy="236" rx="36" ry="21" transform="rotate(-12 210 236)" class="hl"${glow}/><ellipse cx="386" cy="266" rx="40" ry="24" transform="rotate(-8 386 266)" class="hl"${glow}/>`);
+  g.push(BR.sulci.map(d => `<path d="${d}" class="sulc"/>`).join(''), `<path d="${BR.sylvian}" class="sulc big"/>`);
+  g.push(`<ellipse cx="250" cy="100" rx="170" ry="46" fill="#FFFFFF" opacity="0.12"/></g><path d="${BR.cer}" class="edge"/>`);
+  if (key === 'language') g.push(`<path d="M226,224 C270,196 344,200 380,246" class="arc"/>`);
+  if (key === 'thalamus') g.push(`<path d="${BR.thal}" class="hl deep"${glow}/>`);
+  if (key === 'hippocampus') g.push(`<path d="${BR.hippo}" class="hl deep"${glow}/>`);
+  if (full) {
+    g.push('<text x="22" y="300" class="orient" text-anchor="middle">FRONT</text><text x="590" y="300" class="orient" text-anchor="middle">BACK</text>');
+    const lab = (a, l, t1, t2) => {
+      const top = l[1] < 200, ex = l[2] === 'start' ? l[0] + 30 : l[2] === 'end' ? l[0] - 30 : l[0];
+      const ey = top ? l[1] + (t2 ? 30 : 10) : l[1] - 26;
+      return `<path d="M${a[0]},${a[1]} L${ex},${ey}" class="lead"/><circle cx="${a[0]}" cy="${a[1]}" r="5.5" class="pin"/>` +
+        `<text x="${l[0]}" y="${l[1]}" text-anchor="${l[2]}" class="lbl">${t1}</text>` + (t2 ? `<text x="${l[0]}" y="${l[1] + 20}" text-anchor="${l[2]}" class="lbl2">${t2}</text>` : '');
+    };
+    if (key === 'language') g.push(lab(r.anchor, r.lbl, 'Broca’s area', 'speaking'), lab(r.anchor2, r.lbl2, 'Wernicke’s area', 'understanding'));
+    else if (r) g.push(lab(r.anchor, r.lbl, r.name, r.deep ? 'deep inside the brain' : ''));
+  }
+  g.push('</svg>');
+  return g.join('');
+}
+
+const MYSTERY_NAMES = ['Robin', 'Sam', 'Noa', 'Kai', 'Ari', 'Lee', 'Maya', 'Tom'];
+const caseAgent = () => agents.find(a => a.id === game.caseId);
+function startCase() {
+  const keys = Object.keys(REGIONS);
+  let pool = keys.filter(k => !game.found.has(k) && k !== game.lastKey);
+  if (!pool.length) pool = keys.filter(k => k !== game.lastKey);
+  const key = pick(pool), sev = game.round < 3 ? 0.85 : game.round < 6 ? 0.65 : 0.5;
+  Object.assign(game, { active: true, answer: key, lastKey: key, solved: false, tries: 0, wrong: new Set(), msg: '' });
+  game.round++;
+  const imp = {}; imp[REGIONS[key].imp] = sev;
+  restart([{ name: 'Ada', imp: {} }, { name: pick(MYSTERY_NAMES), imp, mystery: true }, { name: 'Ben', imp: {} }]);
+  log(null, 'support', `Case ${game.round} started. Watch ${caseAgent().name}; Ada and Ben have no difficulties`);
+}
+function endGame() { game.active = false; closeReveal(); restart(defaultSpecs()); }
+function afterSolve() { renderChips(); buildEditor(); renderScore(); renderLog(); renderGame(); }
+function guess(k) {
+  if (!game.active || game.solved) return;
+  const a = caseAgent(), r = REGIONS[k];
+  game.tries++;
+  if (k === game.answer) {
+    const pts = Math.max(1, 4 - game.tries);
+    game.score += pts; game.solved = true; game.found.add(k); game.lastPoints = pts; game.msg = '';
+    log(null, 'support', `Case ${game.round} solved: the ${r.name}`);
+    afterSolve(); openReveal(k, false);
+  } else {
+    game.wrong.add(k);
+    game.msg = `Not the ${esc(r.name)}. It mainly handles ${esc(r.short.toLowerCase())}. Does that match what ${esc(a ? a.name : 'they')} keeps doing?`;
+    renderGame();
+  }
+}
+function giveUp() { if (!game.active || game.solved) return; game.solved = true; game.lastPoints = 0; afterSolve(); openReveal(game.answer, false); }
+function renderGame() {
+  const body = $('#gameBody'); if (!body) return;
+  $('#gScore').textContent = `Score ${game.score}`;
+  const atlas = game.found.size ? `<h3 class="sub">Brain areas found · ${game.found.size} of 7</h3><div class="atlas-row">${[...game.found].map(k => `<button type="button" class="atlas-chip" data-atlas="${k}">${esc(REGIONS[k].name)}</button>`).join('')}</div>` : '';
+  if (!game.active) {
+    body.innerHTML = `<p class="g-intro">One person in the room gets a hidden difficulty. Watch how they move, talk and work, then pick the part of the brain you think is involved. Guess right to see that area up close.</p><div class="row-btns" style="margin:0"><button class="btn primary" type="button" id="gStart">Start a case</button></div>${atlas}`;
+  } else {
+    const a = caseAgent(), nm = esc(a ? a.name : 'the mystery person');
+    const head = game.solved ? `<p class="g-status ok">Case ${game.round}: the ${esc(REGIONS[game.answer].name)}${game.lastPoints ? ` · +${game.lastPoints}` : ''}</p>`
+      : `<p class="g-status">Case ${game.round}. Watch <b>${nm}</b> and compare them with Ada and Ben. Where is the problem? The first guess scores 3 points, the second 2, after that 1.</p>`;
+    const btns = Object.entries(REGIONS).map(([k, r]) => `<button type="button" class="region${game.wrong.has(k) ? ' wrong' : ''}${game.solved && k === game.answer ? ' right' : ''}" data-region="${k}"${game.solved || game.wrong.has(k) ? ' disabled' : ''}>${brainSVG(k, false)}<span><b>${esc(r.name)}</b><small>${esc(r.short)}</small></span></button>`).join('');
+    body.innerHTML = head + (game.msg ? `<p class="g-msg" role="status">${game.msg}</p>` : '') + `<div class="regions">${btns}</div>` +
+      `<div class="row-btns">${game.solved ? '<button class="btn primary" type="button" id="gNext">Next case</button><button class="btn" type="button" id="gShow">See the picture again</button>' : '<button class="btn ghost" type="button" id="gGiveUp">Show the answer</button>'}<button class="btn ghost" type="button" id="gEnd">End game</button></div>` + atlas;
+  }
+  const on = (id, fn) => { const el = body.querySelector('#' + id); if (el) el.addEventListener('click', fn); };
+  on('gStart', startCase); on('gNext', startCase); on('gGiveUp', giveUp); on('gEnd', endGame); on('gShow', () => openReveal(game.answer, false));
+  body.querySelectorAll('[data-region]').forEach(b => b.addEventListener('click', () => guess(b.dataset.region)));
+  body.querySelectorAll('[data-atlas]').forEach(b => b.addEventListener('click', () => openReveal(b.dataset.atlas, true)));
+}
+let lastFocus = null;
+function openReveal(k, fromAtlas) {
+  const r = REGIONS[k], a = caseAgent();
+  $('#revealArt').innerHTML = brainSVG(k, true);
+  const live = !fromAtlas && game.active && k === game.answer && a;
+  $('#revealEyebrow').textContent = !live ? 'From your brain atlas' : game.lastPoints ? `Case ${game.round} solved · +${game.lastPoints} point${game.lastPoints > 1 ? 's' : ''}` : `Case ${game.round} · answer shown`;
+  $('#revealTitle').textContent = r.name;
+  $('#revealRole').textContent = r.role;
+  let saw = `<li>${esc(r.signs)}</li>`;
+  if (live) {
+    const ex = LOG.filter(e => e.id === a.id && (e.kind === r.imp || (r.imp === 'language' && e.kind === 'say' && e.lang))).slice(0, 3);
+    const n = a.stats.ev[r.imp];
+    saw = n ? `<li>${esc(a.name)} showed this ${n} time${n > 1 ? 's' : ''} so far. For example:</li>` + ex.map(e => `<li>${e.kind === 'say' ? `said “${esc(e.text)}”` : esc(e.text)}</li>`).join('') : `<li>${esc(a.name)} hadn’t shown it yet. Typical signs: ${esc(r.signs.charAt(0).toLowerCase() + r.signs.slice(1))}</li>`;
+  }
+  $('#revealSaw').innerHTML = saw;
+  $('#revealNote').textContent = r.note + ' Real brains spread every skill across networks of areas; this game matches each difficulty to the area most often taught for it.';
+  $('#revealNext').hidden = !game.active;
+  lastFocus = document.activeElement;
+  $('#reveal').hidden = false;
+  $('#revealClose').focus();
+}
+function closeReveal() { $('#reveal').hidden = true; if (lastFocus && lastFocus.focus) lastFocus.focus(); }
+$('#revealClose').addEventListener('click', closeReveal);
+$('#revealNext').addEventListener('click', () => { closeReveal(); startCase(); });
+$('#reveal').addEventListener('click', e => { if (e.target.id === 'reveal') closeReveal(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('#reveal').hidden) closeReveal(); });
+
+restart(defaultSpecs());
 let last = performance.now(), uiT = 0, scoreT = 0;
 function frame(now) {
   const dt = Math.min(0.1, (now - last) / 1000); last = now;

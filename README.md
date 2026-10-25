@@ -12,6 +12,22 @@ An interactive, browser-only simulation of people sharing a kitchen-lounge. Each
 
 The page also has room supports (labels, a checklist, a quiet room, clear walkways, adapted tools), a perception overlay, a "compare everyone on one job" mode, an event log and a scoreboard.
 
+## Brain detective (game mode)
+
+Press **Start a case** and one person in the room gets a hidden difficulty. Their difficulty settings, log tags and overlay are hidden. Watch how they behave compared with the two people without difficulties, give them jobs to test your ideas, then choose which brain area you think is involved:
+
+| Difficulty | Brain area in the game |
+|---|---|
+| Spatial perception | Parietal lobe |
+| Visual field (left side) | Occipital lobe (visual cortex) |
+| Movement | Cerebellum |
+| Attention | Thalamus |
+| Language | Broca's and Wernicke's areas |
+| Planning | Prefrontal cortex |
+| Memory | Hippocampus |
+
+A correct first guess scores 3 points, the second 2, then 1. Solving a case shows a large illustration of the brain with that area highlighted, what it does, and the clues the person showed in the room. Areas you find are collected in a brain atlas you can reopen. Cases get subtler as you go.
+
 ## Run it
 
 Open `index.html` in any modern browser. There is no build step, backend, database or API key. Everything runs locally from rules and dialogue templates. The only network requests are for the Google Fonts, and the page still works without them.
