@@ -18,6 +18,8 @@ The page also has room supports (labels, a checklist, a quiet room, clear walkwa
   1. choose what they find hard (judging space, seeing one side, moving smoothly, staying focused, words, planning, remembering);
   2. click where that lives in the brain on an interactive brain picture.
 
+  The person to watch does every job as a team with Ada. They share one list of steps and each takes the next step that is ready. When one partner gets stuck (forgets, gets distracted, fumbles, can't find something or gives up), they let go of that step and the other one takes it over, so the job still gets finished. A dotted line links the two partners.
+
   A correct answer shows the area glowing and labelled, with the clues the person gave. Each step scores 2 points on the first try and 1 on the second.
 - **`lab.html`: the full lab.** Set every person's difficulties with sliders, add room supports, and read the event log and scoreboard.
 

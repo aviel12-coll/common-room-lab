@@ -114,6 +114,7 @@ canvas#room{display:block;width:100%;min-width:600px;aspect-ratio:960/600;backgr
 .row{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
 .foot{margin-top:18px;font-size:13px;color:var(--muted)}
 .foot a{color:var(--accent)}
+.muted{color:var(--muted)}
 .picker .part{fill:transparent;cursor:pointer;transition:fill-opacity .15s}
 .picker .part:hover,.picker .part:focus-visible{fill:var(--hl);fill-opacity:.5;outline:none}
 .picker .part.miss{fill:var(--miss);fill-opacity:.32}
@@ -129,7 +130,7 @@ canvas#room{display:block;width:100%;min-width:600px;aspect-ratio:960/600;backgr
   <header class="top">
     <div>
       <h1>Brain Detective</h1>
-      <p>Someone in the room has a hidden difficulty. Watch them, name the difficulty, then find where it lives in the brain.</p>
+      <p>Someone in the room has a hidden difficulty and shares every job with a partner. Watch them, name the difficulty, then find where it lives in the brain.</p>
     </div>
     <div class="stats"><span class="stat">Case<b id="sRound">1</b></span><span class="stat">Score<b id="sScore">0</b></span></div>
   </header>
@@ -280,7 +281,12 @@ const LINES = {
   ignored: ['…okay then.', 'Never mind.'],
   helpAsk: ['{name}, could you help me find the {st}?', 'Could you give me a hand, {name}?'],
   helpYes: ["Sure, follow me. It's over here.", 'Of course, let me show you.'],
-  helpHere: ['Here it is.', 'There you go, the {st}.']
+  helpHere: ['Here it is.', 'There you go, the {st}.'],
+  teamStart: ["{name}, let's {phrase} together.", 'Want to {phrase} with me, {name}?'],
+  handoff: ["I'll {verb} for you, {name}.", "Don't worry {name}, I'll {verb}.", "I've got this one, {name}."],
+  askTake: ['Could you do this bit?', "I can't manage this one. Can you?"],
+  teamDone: ['We did it!', 'Nice teamwork, {name}.'],
+  teamWait: ['Ready when you are, {name}.', "I'll wait for you, {name}."]
 };
 
 // Language production model
@@ -483,6 +489,7 @@ function startTask(a, key, announce = true) {
 function nextStep(a) {
   const run = a.run;
   if (!run) { a.state = 'idle'; a.timer = 1; return; }
+  if (run.team) return teamNext(a);
   if (!run.plan.length) {
     const missing = run.def.steps.filter(s => !run.done.has(s.verb));
     if (missing.length) {
@@ -508,6 +515,74 @@ function completeTask(a) {
   a.lastTask = a.run.key; a.run = null; a.cue = false; a.marginBoost = 0;
   a.state = 'idle'; a.timer = 1.5 + rnd() * 2.5;
 }
+// ---------- Team jobs ----------
+// Two partners share one queue of steps. Each claims the next step that is ready;
+// a partner who gets stuck lets go of their step, and the other one takes it over.
+const TEAM_TASKS = ['tea', 'setTable', 'plant', 'book', 'note', 'mail'];
+const teamRun = T => ({ key: T.key, def: T.def, plan: [], flags: T.flags, done: T.done, start: T.start, fails: 0, asked: true, team: T });
+function startTeam(a, b) {
+  const key = pick(TEAM_TASKS.filter(k => k !== a.lastTask)), def = TASKS[key];
+  const T = { key, def, queue: def.steps.map(st => ({ ...st, claimedBy: null, droppedBy: null })), flags: new Set(), done: new Set(), start: simT, members: [a, b], finished: false };
+  for (const m of [a, b]) { detachConvo(m); release(m); m.run = teamRun(T); m.cue = false; m.purpose = 'step'; m.marginBoost = 0; m.state = 'thinking'; m.timer = 0.4 + rnd() * 0.6; }
+  say(a, pick(LINES.teamStart), { name: b.name, phrase: def.phrase });
+  log(a, 'support', `started “${def.name}” together with ${b.name}`);
+}
+function joinTeam(a, T) {
+  if (!T.members.includes(a)) T.members.push(a);
+  a.run = teamRun(T); a.state = 'thinking'; a.timer = 0.5;
+  log(a, 'support', `rejoined the team job “${T.def.name}”`);
+}
+function teamPartner(a) { const T = a.run && a.run.team; return T ? T.members.find(m => m !== a && m.run && m.run.team === T) : null; }
+function teamNext(a) {
+  const T = a.run.team;
+  if (T.def.steps.every(st => T.done.has(st.verb))) return teamComplete(T);
+  a.stepTrouble = 0;
+  const avail = T.queue.filter(st => !st.claimedBy);
+  const ready = avail.filter(st => (st.needs || []).every(f => T.flags.has(f)));
+  const unready = avail.filter(st => !ready.includes(st));
+  let step = ready[0];
+  if (unready.length && rnd() < effPlanning(a) * 0.5) step = pick(unready);
+  if (!step) {
+    a.run.plan = []; a.state = 'teamwait'; a.timer = 0.8;
+    const p = teamPartner(a); if (p && rnd() < 0.12) say(a, pick(LINES.teamWait), { name: p.name });
+    return;
+  }
+  step.claimedBy = a.id; a.run.plan = [step];
+  if (step.droppedBy && step.droppedBy !== a.id) {
+    const d = agents.find(m => m.id === step.droppedBy);
+    if (d) { say(a, pick(LINES.handoff), { name: d.name, verb: step.verb }); log(a, 'support', `took over “${step.verb}” when ${d.name} got stuck`); }
+  }
+  step.droppedBy = null;
+  a.state = 'thinking'; a.timer = 0.25 + effPlanning(a) * 1.6 + rnd() * 0.3;
+}
+function dropStep(a) {
+  if (!a.run || !a.run.team) return false;
+  const step = a.run.plan[0];
+  if (step && step.claimedBy === a.id) { step.claimedBy = null; step.droppedBy = a.id; }
+  a.run.plan = []; release(a);
+  return true;
+}
+function handOff(a) { // stuck: let the partner take this step
+  const p = teamPartner(a); if (!p) return false;
+  say(a, pick(LINES.askTake)); dropStep(a); a.state = 'teamwait'; a.timer = 3;
+  return true;
+}
+function teamComplete(T) {
+  if (T.finished) return; T.finished = true;
+  const t = simT - T.start, active = T.members.filter(m => m.run && m.run.team === T);
+  if (T.key === 'tea') world.tea = Math.min(world.tea + 1, 8);
+  if (T.key === 'note') world.notes = Math.min(world.notes + 1, 12);
+  if (T.key === 'book') world.books = Math.min(world.books + 1, 4);
+  if (T.key === 'mail') world.mail = Math.min(world.mail + 1, 4);
+  if (T.key === 'plant') world.plantT = simT;
+  for (const m of active) {
+    m.stats.done++; m.stats.time += t; m.lastTask = T.key; m.run = null; release(m);
+    if (m.state !== 'talking') { m.state = 'idle'; m.timer = 1.5 + rnd() * 2; }
+  }
+  const lead = active[0] || T.members[0], other = active.find(m => m !== lead);
+  log(lead, 'done', `finished “${T.def.name}” ${other ? `together with ${other.name}` : 'on their own'} in ${fmt(t)}`);
+  say(lead, pick(LINES.teamDone), { name: other ? other.name : 'everyone' });
+}
 function locate(a) {
   if (!a.run) { a.state = 'idle'; a.timer = 0.5; return; }
   if (!a.run.plan.length) return nextStep(a);
@@ -520,7 +595,11 @@ function locate(a) {
     const vx = Math.cos(a.h), vy = Math.sin(a.h), tx = st.x - a.x, ty = st.y - a.y;
     if (Math.hypot(tx, ty) > 40) {
       const ang = Math.atan2(vx * ty - vy * tx, vx * tx + vy * ty);
-      if (ang < -0.35 && rnd() < F * 0.85) {
+      if (ang < -0.1 && rnd() < F * 0.85) {
+        if (a.run.team && a.searchN >= 2 && teamPartner(a)) {
+          ev(a, 'field', `couldn't find the ${st.label} on their left, so left it to ${teamPartner(a).name}`);
+          a.searchN = 0; handOff(a); return;
+        }
         a.searchN++; a.state = 'searching'; a.timer = 1.4 + rnd() * 1.2;
         say(a, pick(LINES.search), { st: st.label });
         ev(a, 'field', `didn't see the ${st.label} on their left; turning right to scan`);
@@ -545,6 +624,7 @@ function arrive(a) {
   if (off > 28) {
     say(a, pick(LINES.miss), { st: st.label });
     ev(a, 'spatial', `expected the ${st.label} about ${(off / PX_PER_M).toFixed(1)} m from where it is`);
+    if (a.run && a.run.team && ++a.stepTrouble >= 2 && handOff(a)) return;
     a.errMag *= 0.45; a.state = 'thinking'; a.timer = 0.9; return;
   }
   beginAct(a);
@@ -572,6 +652,12 @@ function finishAct(a) {
   const missing = (step.needs || []).filter(f => !run.flags.has(f));
   if (missing.length) {
     const fix = run.def.steps.filter(s => s.gives && missing.includes(s.gives));
+    if (fix.length && run.team) {
+      step.claimedBy = null; run.plan = [];
+      say(a, pick(LINES.planfail), { verb: fix[0].verb });
+      ev(a, 'planning', `tried to ${step.verb} before the team could ${fix.map(s => s.verb).join(' and ')}`);
+      release(a); a.state = 'thinking'; a.timer = 1.0; return;
+    }
     if (fix.length) {
       run.plan = fix.map(s => ({ ...s })).concat(run.plan);
       say(a, pick(LINES.planfail), { verb: fix[0].verb });
@@ -581,13 +667,15 @@ function finishAct(a) {
   }
   const slip = effMotor(a) * 0.4 * (supports.tools ? 0.4 : 1);
   if (rnd() < slip) {
+    ev(a, 'motor', `fumbled while trying to ${step.verb}`);
+    if (run.team && ++a.stepTrouble >= 2 && handOff(a)) return;
     say(a, pick(LINES.fumble), { obj: step.obj });
-    ev(a, 'motor', `fumbled while trying to ${step.verb}; starting that again`);
     a.timer = a.actDur * 0.7; return;
   }
   if (step.gives) run.flags.add(step.gives);
   for (const f of step.needs || []) if (CARRY.has(f)) run.flags.delete(f);
   run.done.add(step.verb);
+  if (run.team) { const qi = run.team.queue.indexOf(step); if (qi >= 0) run.team.queue.splice(qi, 1); }
   release(a); run.plan.shift();
   if (rnd() < effPlanning(a) * 0.15) {
     run.plan.unshift({ ...step }); a.stats.ev.planning++;
@@ -605,22 +693,30 @@ function forget(a) {
   a.state = 'confused'; a.timer = 1.8 + rnd() * 1.5;
   say(a, pick(LINES.forget));
   ev(a, 'memory', `lost track of the goal (was going to ${step ? step.verb : 'do something'})`);
+  dropStep(a);
 }
 function resolveConfusion(a) {
   if (!a.run) { a.state = 'idle'; a.timer = 0.5; return; }
   const step = a.run.plan[0];
-  if (rnd() > effMemory(a) * 0.65) { if (step) say(a, pick(LINES.recall), { verb: step.verb, st: STATIONS[step.st].label }); locate(a); }
-  else if (rnd() < 0.5) {
-    log(a, 'memory', `couldn't remember where they were up to, so started “${a.run.def.name}” over`);
-    a.run.plan = a.run.def.steps.map(s => ({ ...s })); a.run.done.clear(); nextStep(a);
+  const team = a.run.team, p = team && teamPartner(a);
+  if (rnd() > effMemory(a) * 0.65) {
+    if (step) say(a, pick(LINES.recall), { verb: step.verb, st: STATIONS[step.st].label });
+    else if (team) say(a, "Oh right, we're going to {phrase}.", { phrase: a.run.def.phrase });
+    locate(a);
+  } else if (rnd() < 0.5) {
+    if (team) log(a, 'memory', `lost their place in “${a.run.def.name}”${p ? `; ${p.name} keeps going` : ''}`);
+    else { log(a, 'memory', `couldn't remember where they were up to, so started “${a.run.def.name}” over`); a.run.plan = a.run.def.steps.map(s => ({ ...s })); a.run.done.clear(); }
+    nextStep(a);
   } else {
-    log(a, 'memory', `gave up on “${a.run.def.name}”`);
+    dropStep(a);
+    log(a, 'memory', `gave up on “${a.run.def.name}”${p ? `; ${p.name} carries on` : ''}`);
     a.stats.abandoned++; say(a, pick(LINES.giveup));
     a.lastTask = a.run.key; a.run = null; a.state = 'idle'; a.timer = 1 + rnd() * 1.5;
   }
 }
 function distract(a, src) {
-  if (a.state === 'acting') release(a);
+  if (a.run && a.run.team) dropStep(a);
+  else if (a.state === 'acting') release(a);
   a.state = 'distracted'; a.timer = 1.2 + effAttention(a) * 2.5 + rnd() * 1.5;
   a.distractPt = src; a.distractCD = 3 + rnd() * 3;
   if (rnd() < 0.5) say(a, pick(LINES.distract));
@@ -674,14 +770,16 @@ function startConvo(a, b, kind, extra = {}) {
   const lines = []; let t = 0.3 + a.imp.language * 1.0;
   const add = (fn, gap) => { lines.push({ at: t, fn }); t += gap; };
   const replyGap = 1.6 + b.imp.language * 1.2;
-  const ignores = rnd() < effAttention(b) * 0.5;
+  const vx = Math.cos(b.h), vy = Math.sin(b.h), dx = a.x - b.x, dy = a.y - b.y;
+  const unseen = vx * dy - vy * dx < 0 && rnd() < effField(b) * 0.8;
+  const ignores = unseen || rnd() < effAttention(b) * 0.5;
   const misread = !ignores && rnd() < b.imp.language * 0.55;
   if (kind === 'greet') add(() => say(a, pick(LINES.greet), { name: nameFor(a, b) }), replyGap);
   else if (kind === 'ask') add(() => say(a, pick(LINES.ask), { name: nameFor(a, b) }), replyGap);
   else if (kind === 'comment') add(() => say(a, pick(LINES.comment)), replyGap);
   else add(() => say(a, pick(LINES.helpAsk), { name: b.name, st: extra.st.label }), replyGap);
   let helped = false;
-  if (ignores) add(() => { ev(b, 'attention', `didn't notice ${a.name} talking to them`); say(a, pick(LINES.ignored)); }, 1.6);
+  if (ignores) add(() => { if (unseen) ev(b, 'field', `didn't notice ${a.name}, who was talking to them from their left`); else ev(b, 'attention', `didn't notice ${a.name} talking to them`); say(a, pick(LINES.ignored)); }, 1.6);
   else if (misread) add(() => { ev(b, 'language', `misunderstood what ${a.name} said`); say(b, pick(LINES.offtopic)); }, 1.8);
   else if (kind === 'greet') add(() => say(b, pick(LINES.greetBack), { name: nameFor(b, a) }), 1.8);
   else if (kind === 'ask') {
@@ -706,7 +804,7 @@ function endConvo(c) {
     startHelping(b, a, c.st);
   } else if (b.state === 'talking') resume(b);
 }
-const isFree = a => ['walking', 'idle', 'thinking', 'waiting'].includes(a.state) && a.purpose !== 'help' && a.talkCD <= 0;
+const isFree = a => ['walking', 'idle', 'thinking', 'waiting', 'teamwait'].includes(a.state) && a.purpose !== 'help' && a.talkCD <= 0;
 
 // ---------- Motion ----------
 function collide(a) {
@@ -746,7 +844,14 @@ function update(a, dt) {
   switch (a.state) {
     case 'idle':
       a.timer -= dt;
-      if (a.timer <= 0) startTask(a, chooseTask(a));
+      if (a.timer <= 0) {
+        const p = a.partner && agents.includes(a.partner) ? a.partner : null;
+        const T = p && p.run && p.run.team && !p.run.team.finished ? p.run.team : null;
+        if (T) joinTeam(a, T);
+        else if (p && !p.run && (p.state === 'idle' || p.state === 'teamwait')) startTeam(a, p);
+        else if (p) a.timer = 0.5;
+        else startTask(a, chooseTask(a));
+      }
       break;
     case 'thinking':
       a.timer -= dt;
@@ -766,6 +871,17 @@ function update(a, dt) {
       const wp = a.path[a.pathI];
       if (Math.hypot(wp.x - a.x, wp.y - a.y) < 5) { a.pathI++; break; }
       moveToward(a, wp.x, wp.y, 1, dt, true);
+      if (a.state === 'walking' && a.bumpCD <= 0 && rnd() < effField(a) * 0.8 * dt) {
+        // left-side difficulty: furniture just to their left can go unnoticed
+        const vx = Math.cos(a.h), vy = Math.sin(a.h);
+        const o = OBS.find(o => { const dx = clamp(a.x, o.x, o.x + o.w) - a.x, dy = clamp(a.y, o.y, o.y + o.h) - a.y; return Math.hypot(dx, dy) < R + 22 && vx * dy - vy * dx < 0; });
+        if (o) {
+          a.state = 'bumped'; a.timer = 0.8; a.bumpCD = 2.2; a.marginBoost += 3; a.bumpObj = o.label;
+          say(a, pick(LINES.bump), { obj: o.label });
+          ev(a, 'field', `walked into the ${o.label} on their left side`);
+          break;
+        }
+      }
       a.stuckT += dt;
       if (a.stuckT > 1.6) {
         if (dist(a, a.stuckRef) < 10) { if (++a.stuckN > 3) { a.stuckN = 0; arrive(a); break; } a.marginBoost += 4; const n = a.stuckN; planPath(a); a.stuckN = n; }
@@ -807,6 +923,13 @@ function update(a, dt) {
       a.timer -= dt;
       if (a.timer <= 0) { planPath(a); a.state = 'walking'; }
       break;
+    case 'teamwait': {
+      a.timer -= dt;
+      if (attentionCheck(a, dt)) break;
+      const p = teamPartner(a); if (p) faceToward(a, Math.atan2(p.y - a.y, p.x - a.x), dt);
+      if (a.timer <= 0) { if (a.run && a.run.team) teamNext(a); else { a.state = 'idle'; a.timer = 0.5; } }
+      break;
+    }
     case 'talking':
       if (a.convoWith) faceToward(a, Math.atan2(a.convoWith.y - a.y, a.convoWith.x - a.x), dt);
       break;
@@ -938,7 +1061,7 @@ function drawRoom() {
   }
 }
 
-const STATUS = { thinking: ['…', 'muted'], searching: ['↻', 't-field'], confused: ['?', 't-memory'], distracted: ['!', 't-attention'], waiting: ['⧗', 'muted'], bumped: ['✶', 't-spatial'] };
+const STATUS = { thinking: ['…', 'muted'], searching: ['↻', 't-field'], confused: ['?', 't-memory'], distracted: ['!', 't-attention'], waiting: ['⧗', 'muted'], teamwait: ['⧗', 'muted'], bumped: ['✶', 't-spatial'] };
 function drawOverlay(a) {
   // field of view, with the neglected side shaded
   const FOV = 1.3, RAD = 150;
@@ -1048,6 +1171,12 @@ function draw() {
   const showPaths = false, showOv = false, s = sel();
   if (showPaths) agents.forEach(drawPath);
   if (showOv && s && !hidden(s)) { if (!showPaths) drawPath(s); drawOverlay(s); }
+  for (const a of agents) {
+    const p = a.run && a.run.team && teamPartner(a);
+    if (!p || a.id > p.id) continue;
+    ctx.save(); ctx.strokeStyle = T.muted; ctx.globalAlpha = 0.55; ctx.setLineDash([2, 7]); ctx.lineWidth = 2; ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(p.x, p.y); ctx.stroke(); ctx.restore();
+  }
   agents.forEach(drawAgent);
   agents.forEach(drawBubble);
 }
@@ -1082,6 +1211,7 @@ function describe(a) {
     case 'distracted': return `Distracted by ${a.distractPt.label}.`;
     case 'talking': return `Talking with ${a.convoWith ? a.convoWith.name : 'someone'}.`;
     case 'bumped': return `Recovering after bumping into the ${a.bumpObj}.`;
+    case 'teamwait': return 'Waiting for the next step of the team job to be ready.';
   }
   return '';
 }
@@ -1209,6 +1339,8 @@ function setupRoom(specs) {
   Object.assign(world, { tea: 0, notes: 0, books: 0, mail: 0, plantT: -99 });
   for (const k in STATIONS) STATIONS[k].users.clear();
   specs.forEach(s => { const a = addAgent(s); if (s.mystery) { game.caseId = a.id; selId = a.id; a.timer = 0.4; } });
+  const m = caseAgent(), ada = agents.find(x => x.name === 'Ada');
+  if (m && ada) { m.partner = ada; ada.partner = m; }
 }
 function newCase() {
   const keys = Object.keys(CASES).filter(k => k !== G.last);
@@ -1287,7 +1419,7 @@ function render() {
   const msg = G.msg ? `<p class="msg ${G.msgKind}">${G.msg}</p>` : '';
   let html = steps;
   if (G.step === 1) {
-    html += `<h2>What is ${nm} finding hard?</h2><p>${nm} has the dashed ring. Ada and Ben have no difficulties, so compare them.</p>${msg}<div class="choices">` +
+    html += `<h2>What is ${nm} finding hard?</h2><p>${nm} has the dashed ring and does every job as a team with Ada. When ${nm} gets stuck, Ada takes over that step. Ada and Ben have no difficulties, so compare them.</p>${msg}<div class="choices">` +
       Object.entries(CASES).map(([k, v]) => `<button type="button" class="choice${G.wrong.has(k) ? ' wrong' : ''}" data-choice="${k}"${G.wrong.has(k) ? ' disabled' : ''}><b>${v.label}</b><small>${v.small}</small></button>`).join('') +
       `</div><div class="row"><button class="btn ghost" type="button" id="hintBtn">Show a clue</button><button class="btn ghost" type="button" id="skipBtn">Skip this case</button></div>`;
   } else if (G.step === 2) {
@@ -1310,7 +1442,9 @@ function render() {
 }
 function refreshStatus() {
   const a = caseAgent(); if (!a || G.step !== 1) return;
-  $('#status').innerHTML = `<span class="dot" style="background:${a.color}"></span><span><b>${esc(a.name)}</b>: ${esc(describe(a))}</span>`;
+  const T = a.run && a.run.team, p = T && teamPartner(a);
+  const team = T ? ` <span class="muted">· Team job${p ? ` with ${esc(p.name)}` : ''}: ${esc(T.def.name)}, ${T.def.steps.filter(st => T.done.has(st.verb)).length} of ${T.def.steps.length} steps done</span>` : '';
+  $('#status').innerHTML = `<span class="dot" style="background:${a.color}"></span><span><b>${esc(a.name)}</b>: ${esc(describe(a))}${team}</span>`;
 }
 $('#speedBtn').addEventListener('click', () => { speed = speed === 1 ? 2 : speed === 2 ? 4 : 1; $('#speedBtn').textContent = `Speed ${speed}×`; });
 
