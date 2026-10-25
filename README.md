@@ -12,25 +12,28 @@ An interactive, browser-only simulation of people sharing a kitchen-lounge. Each
 
 The page also has room supports (labels, a checklist, a quiet room, clear walkways, adapted tools), a perception overlay, a "compare everyone on one job" mode, an event log and a scoreboard.
 
-## Brain detective (game mode)
+## Pages
 
-Press **Start a case** and one person in the room gets a hidden difficulty. Their difficulty settings, log tags and overlay are hidden. Watch how they behave compared with the two people without difficulties, give them jobs to test your ideas, then choose which brain area you think is involved:
+- **`index.html`: Brain Detective (the game).** A random person in the room gets one hidden difficulty. Watch them next to two people without difficulties, then:
+  1. choose what they find hard (judging space, seeing one side, moving smoothly, staying focused, words, planning, remembering);
+  2. click where that lives in the brain on an interactive brain picture.
+
+  A correct answer shows the area glowing and labelled, with the clues the person gave. Each step scores 2 points on the first try and 1 on the second.
+- **`lab.html`: the full lab.** Set every person's difficulties with sliders, add room supports, and read the event log and scoreboard.
 
 | Difficulty | Brain area in the game |
 |---|---|
-| Spatial perception | Parietal lobe |
-| Visual field (left side) | Occipital lobe (visual cortex) |
-| Movement | Cerebellum |
-| Attention | Thalamus |
-| Language | Broca's and Wernicke's areas |
+| Judging space | Parietal lobe |
+| Seeing one side | Occipital lobe |
+| Moving smoothly | Cerebellum (motor cortex also accepted) |
+| Staying focused | Thalamus |
+| Words | Broca's and Wernicke's areas |
 | Planning | Prefrontal cortex |
-| Memory | Hippocampus |
-
-A correct first guess scores 3 points, the second 2, then 1. Solving a case shows a large illustration of the brain with that area highlighted, what it does, and the clues the person showed in the room. Areas you find are collected in a brain atlas you can reopen. Cases get subtler as you go.
+| Remembering | Hippocampus |
 
 ## Run it
 
-Open `index.html` in any modern browser. There is no build step, backend, database or API key. Everything runs locally from rules and dialogue templates. The only network requests are for the Google Fonts, and the page still works without them.
+Open `index.html` (the game) or `lab.html` (the full lab) in any modern browser. There is no build step, backend, database or API key. Everything runs locally from rules and dialogue templates. The only network requests are for the Google Fonts, and the page still works without them.
 
 ## Disclaimer
 

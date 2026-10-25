@@ -3,13 +3,13 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Common Room Lab</title>
+<title>Brain Detective</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=JetBrains+Mono:wght@400;600&display=swap">
 <style>
-/* Layout: a floor-plan stage with its log and scoreboard on the left, a case-sheet control panel on the right; everything stacks on phones. */
+/* Layout: the room (or the brain) is the stage on the left; one question panel sits beside it and stacks below on narrow screens. */
 :root{
   --bg:#EDF1EF; --surface:#FFFFFF; --surface-2:#F4F7F5; --ink:#16232A; --muted:#566A70; --line:#D2DCD8;
   --accent:#2950B8; --accent-ink:#FFFFFF;
@@ -38,104 +38,6 @@
   --t-spatial:#5AA6E8; --t-field:#8F8BF0; --t-motor:#EE9450; --t-attention:#E0BC3A; --t-language:#EC79AC; --t-planning:#4CC08B; --t-memory:#B38AEB; --t-support:#79AEBB; --t-done:#88A8FF;
   color-scheme:dark;
 }
-*{box-sizing:border-box}
-html{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
-body{margin:0}
-[hidden]{display:none!important}
-body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.5}
-.app{max-width:1480px;margin:0 auto;padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));padding-block:22px 48px}
-header.top{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:10px 28px;margin-bottom:18px}
-h1{font-family:var(--f-display);font-weight:700;font-size:clamp(28px,3.4vw,40px);letter-spacing:-0.025em;line-height:1.05;margin:0;text-wrap:balance}
-.lede{max-width:64ch;color:var(--muted);margin:6px 0 0}
-.scale-note{font-family:var(--f-mono);font-size:12px;color:var(--muted);letter-spacing:.02em}
-.layout{display:grid;grid-template-columns:minmax(0,1fr) 390px;gap:20px;align-items:start}
-.col{display:flex;flex-direction:column;gap:20px;min-width:0}
-@media (max-width:1100px){.layout{grid-template-columns:minmax(0,1fr)}}
-.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;min-width:0}
-.card-h{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 12px;padding:12px 14px;border-bottom:1px solid var(--line)}
-.card-h h2{font-family:var(--f-display);font-weight:700;font-size:17px;margin:0;letter-spacing:-0.01em}
-.card-b{padding:14px}
-.toolbar{display:flex;flex-wrap:wrap;gap:8px 10px;align-items:center;padding:10px 12px;border-bottom:1px solid var(--line)}
-.toolbar .spacer{flex:1 1 auto}
-.clock{font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-size:13px;color:var(--muted);min-width:64px}
-.btn{font:700 13px/1 var(--f-body);border:1px solid var(--line);background:var(--surface-2);color:var(--ink);border-radius:6px;padding:8px 11px;cursor:pointer;white-space:nowrap}
-.btn:hover{border-color:var(--furn-line)}
-.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:transparent}
-.btn.ghost{background:transparent}
-.btn.danger{color:var(--t-language)}
-.btn[disabled]{opacity:.45;cursor:not-allowed}
-.btn:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visible,canvas:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-.seg{display:inline-flex;border:1px solid var(--line);border-radius:6px;overflow:hidden}
-.seg button{font:600 12px/1 var(--f-mono);background:var(--surface-2);color:var(--muted);border:0;border-right:1px solid var(--line);padding:8px 9px;cursor:pointer}
-.seg button:last-child{border-right:0}
-.seg button[aria-pressed="true"]{background:var(--ink);color:var(--surface)}
-.check{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--ink);cursor:pointer}
-.check input{accent-color:var(--accent);width:15px;height:15px}
-select{font:600 13px var(--f-body);background:var(--surface-2);color:var(--ink);border:1px solid var(--line);border-radius:6px;padding:6px 8px}
-.stage-scroll{overflow-x:auto}
-.stage{min-width:660px}
-canvas#room{display:block;width:100%;aspect-ratio:960/600;max-width:100%;cursor:pointer;background:var(--floor)}
-.stage-foot{display:flex;flex-wrap:wrap;gap:6px 14px;padding:10px 14px;border-top:1px solid var(--line);font-size:12px;color:var(--muted)}
-.legend-item{display:inline-flex;align-items:center;gap:6px}
-.sw{display:inline-block;width:10px;height:10px;border-radius:3px;flex:none}
-.lower{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:20px}
-@media (max-width:900px){.lower{grid-template-columns:minmax(0,1fr)}}
-.log{list-style:none;margin:0;padding:6px 0;height:330px;overflow-y:auto;font-size:13px}
-.log li{display:grid;grid-template-columns:44px minmax(0,1fr);gap:8px;padding:5px 14px;border-bottom:1px dashed var(--line)}
-.log li:last-child{border-bottom:0}
-.log time{font-family:var(--f-mono);font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums;padding-top:2px}
-.log .who{font-weight:700}
-.log .quote{font-style:italic}
-.tag{display:inline-block;font:600 10px/1 var(--f-mono);letter-spacing:.06em;text-transform:uppercase;padding:3px 5px 2px;border-radius:3px;margin-right:6px;color:var(--surface);vertical-align:1px}
-.empty{color:var(--muted);padding:14px}
-.table-wrap{overflow-x:auto}
-table.score{border-collapse:collapse;width:100%;font-size:13px;font-variant-numeric:tabular-nums}
-table.score th{font:600 10px/1.2 var(--f-mono);letter-spacing:.05em;text-transform:uppercase;color:var(--muted);text-align:right;padding:8px 8px;border-bottom:1px solid var(--line);white-space:nowrap}
-table.score th:first-child,table.score td:first-child{text-align:left}
-table.score td{padding:8px 8px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
-table.score tr:last-child td{border-bottom:0}
-table.score td.zero{color:var(--muted);opacity:.55}
-table.score th .sw{width:8px;height:8px;margin-right:3px;vertical-align:0}
-.namecell{display:inline-flex;align-items:center;gap:7px;font-weight:700}
-.dot{display:inline-block;width:12px;height:12px;border-radius:50%;flex:none}
-.chips{display:flex;flex-wrap:wrap;gap:8px}
-.chip{display:inline-flex;align-items:center;gap:8px;padding:7px 10px 7px 8px;border:1px solid var(--line);background:var(--surface-2);border-radius:999px;cursor:pointer;color:var(--ink);font:700 13px/1.1 var(--f-body);text-align:left}
-.chip small{display:block;font:400 11px/1.2 var(--f-body);color:var(--muted)}
-.chip[aria-pressed="true"]{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
-.who-row{display:flex;align-items:center;gap:10px;margin-bottom:6px}
-.name-input{font:700 20px var(--f-display);letter-spacing:-0.01em;color:var(--ink);background:transparent;border:1px solid transparent;border-radius:6px;padding:2px 6px;margin-left:-6px;width:9.5em;min-width:0}
-.name-input:hover{border-color:var(--line)}
-.pill{font:600 10px/1 var(--f-mono);letter-spacing:.06em;text-transform:uppercase;padding:4px 7px;border-radius:999px;background:var(--surface-2);border:1px solid var(--line);color:var(--muted);margin-left:auto;white-space:nowrap}
-.doing{font-size:14px;margin:0 0 8px;min-height:2.6em}
-.plan-box{background:var(--surface-2);border:1px solid var(--line);border-radius:8px;padding:10px 12px;margin-bottom:16px}
-.plan-box h3{font:600 10px/1 var(--f-mono);letter-spacing:.07em;text-transform:uppercase;color:var(--muted);margin:0 0 8px}
-.plan{margin:0;padding-left:20px;font-size:13px}
-.plan li.cur{font-weight:700}
-.plan li.off{color:var(--t-planning)}
-.plan .done{color:var(--muted);font-size:12px;margin-top:6px}
-.sliders{display:flex;flex-direction:column;gap:12px}
-.slider-head{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
-.slider-head label{font-weight:700;font-size:14px;display:inline-flex;align-items:center;gap:7px}
-.slider-head output{font:600 12px var(--f-mono);color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
-.slider input[type=range]{width:100%;margin:4px 0 0}
-.hint{margin:0;font-size:12px;color:var(--muted);line-height:1.4}
-.row-btns{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
-.sub{font:600 11px/1 var(--f-mono);letter-spacing:.07em;text-transform:uppercase;color:var(--muted);margin:20px 0 8px}
-.task-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
-.task-grid .btn{white-space:normal;text-align:left;line-height:1.2}
-.supports{display:flex;flex-direction:column;gap:10px}
-.support{display:grid;grid-template-columns:18px minmax(0,1fr);gap:4px 8px;align-items:start;cursor:pointer}
-.support input{accent-color:var(--accent);width:16px;height:16px;margin:2px 0 0}
-.support b{font-size:14px}
-.support span{grid-column:2;font-size:12px;color:var(--muted);line-height:1.4}
-.model{margin-top:20px}
-.model-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:12px}
-.rule{border:1px solid var(--line);border-radius:8px;padding:12px 14px;background:var(--surface-2);min-width:0}
-.rule h3{display:flex;align-items:center;gap:8px;font:700 15px var(--f-display);margin:0 0 6px}
-.rule p{margin:0;font-size:13px;line-height:1.5}
-.rule code{font:12px var(--f-mono)}
-.disclaimer{max-width:80ch;color:var(--muted);font-size:13px;margin:14px 0 0}
-.muted{color:var(--muted)}
 /* Brain detective */
 :root{
   --brain-hi:#F7DED7; --brain-lo:#DCA79E; --brain-line:#9E665E; --hl:#F2A100; --hl-line:#A86400; --hl-soft:rgba(242,161,0,.20); --scrim:rgba(12,22,26,.58);
@@ -143,25 +45,6 @@ table.score th .sw{width:8px;height:8px;margin-right:3px;vertical-align:0}
 }
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--brain-hi:#D3A49C; --brain-lo:#86584F; --brain-line:#3C2421; --hl:#FFC23D; --hl-line:#FFD883; --hl-soft:rgba(255,194,61,.16); --scrim:rgba(0,0,0,.68)}}
 :root[data-theme="dark"]{--brain-hi:#D3A49C; --brain-lo:#86584F; --brain-line:#3C2421; --hl:#FFC23D; --hl-line:#FFD883; --hl-soft:rgba(255,194,61,.16); --scrim:rgba(0,0,0,.68)}
-.score-pill{font:600 12px var(--f-mono);font-variant-numeric:tabular-nums;padding:5px 9px;border-radius:999px;background:var(--hl-soft);color:var(--ink);border:1px solid var(--hl-line)}
-.g-intro,.g-status{margin:0 0 12px;font-size:14px}
-.g-status.ok{font-weight:700;color:var(--hl-line)}
-.g-msg{margin:0 0 12px;font-size:13px;padding:8px 10px;border-radius:6px;background:var(--surface-2);border:1px solid var(--line)}
-.regions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
-@media (max-width:420px){.regions{grid-template-columns:minmax(0,1fr)}}
-.region{display:grid;grid-template-columns:62px minmax(0,1fr);gap:8px;align-items:center;text-align:left;padding:6px 8px;border:1px solid var(--line);background:var(--surface-2);border-radius:8px;cursor:pointer;color:var(--ink);font:inherit}
-.region .brain{width:62px}
-.region b{display:block;font-size:13px;line-height:1.2}
-.region small{display:block;font-size:11px;color:var(--muted);line-height:1.3;margin-top:2px}
-.region:hover:not([disabled]){border-color:var(--hl-line)}
-.region:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-.region[disabled]{cursor:default}
-.region.wrong{opacity:.45}
-.region.wrong b{text-decoration:line-through}
-.region.right{border-color:var(--hl-line);box-shadow:inset 0 0 0 1px var(--hl-line);background:var(--hl-soft)}
-.atlas-row{display:flex;flex-wrap:wrap;gap:6px}
-.atlas-chip{font:700 12px var(--f-body);padding:6px 10px;border-radius:999px;border:1px solid var(--hl-line);background:var(--hl-soft);color:var(--ink);cursor:pointer}
-.mystery-note{background:var(--surface-2);border:1px dashed var(--furn-line);border-radius:8px;padding:12px;font-size:13px;margin:0}
 .brain{display:block;width:100%;height:auto}
 .brain .part{stroke:var(--brain-line);stroke-width:2}
 .brain .edge{fill:none;stroke:var(--brain-line);stroke-width:2.6}
@@ -179,18 +62,65 @@ table.score th .sw{width:8px;height:8px;margin-right:3px;vertical-align:0}
 .brain .orient{font:600 12px var(--f-mono);letter-spacing:.12em;fill:var(--muted)}
 .brain.full .hl{animation:hlpulse 2.4s ease-in-out infinite}
 @keyframes hlpulse{50%{opacity:.6}}
-.modal{position:fixed;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;background:var(--scrim);padding-top:max(16px, env(safe-area-inset-top, 0px));padding-bottom:max(16px, env(safe-area-inset-bottom, 0px));padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px))}
-.modal-card{background:var(--surface);border:1px solid var(--line);border-radius:14px;width:100%;max-width:1000px;max-height:100%;overflow:auto;display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);box-shadow:0 24px 60px rgba(0,0,0,.3)}
-@media (max-width:780px){.modal-card{grid-template-columns:minmax(0,1fr)}}
-.reveal-art{display:flex;align-items:center;justify-content:center;padding:28px 20px;background:radial-gradient(circle at 50% 48%, var(--hl-soft), transparent 62%), var(--surface-2);min-width:0}
-.reveal-text{padding:28px 28px 24px;min-width:0}
-.eyebrow{font:600 11px var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--hl-line);margin:0}
-.reveal-text h2{font:700 clamp(26px,3.2vw,36px)/1.05 var(--f-display);letter-spacing:-0.02em;margin:8px 0 12px;text-wrap:balance}
-.reveal-text p{margin:0 0 12px;max-width:60ch}
-.reveal-text h3{font:600 11px var(--f-mono);letter-spacing:.07em;text-transform:uppercase;color:var(--muted);margin:18px 0 8px}
-.reveal-text ul{margin:0;padding-left:18px;font-size:14px}
-.reveal-text li{margin-bottom:4px}
-@media (prefers-reduced-motion: reduce){*{scroll-behavior:auto!important}.brain.full .hl{animation:none}}
+*{box-sizing:border-box}
+html{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body{margin:0}
+[hidden]{display:none!important}
+:root{--miss:#C8463A}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.5}
+.app{max-width:1320px;margin:0 auto;padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));padding-block:20px 36px}
+.top{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px 20px;margin-bottom:14px}
+h1{font-family:var(--f-display);font-weight:700;font-size:clamp(26px,3.2vw,38px);letter-spacing:-0.025em;line-height:1.05;margin:0}
+.top p{margin:4px 0 0;color:var(--muted);max-width:60ch}
+.stats{display:flex;gap:8px}
+.stat{font:600 12px var(--f-mono);letter-spacing:.04em;text-transform:uppercase;color:var(--muted);padding:7px 12px;border-radius:999px;border:1px solid var(--line);background:var(--surface);font-variant-numeric:tabular-nums}
+.stat b{color:var(--ink);font-size:15px;margin-left:4px}
+.game{display:grid;grid-template-columns:minmax(0,1fr) 370px;gap:18px;align-items:start}
+@media (max-width:1000px){.game{grid-template-columns:minmax(0,1fr)}}
+.stage{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden;min-width:0}
+.stage-scroll{overflow-x:auto}
+canvas#room{display:block;width:100%;min-width:600px;aspect-ratio:960/600;background:var(--floor)}
+.stage-bar{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;padding:10px 14px;border-top:1px solid var(--line);font-size:14px}
+.status{flex:1 1 260px;min-width:0;display:flex;align-items:center;gap:8px}
+.dot{display:inline-block;width:12px;height:12px;border-radius:50%;flex:none}
+.brain-stage{padding:24px 16px;background:radial-gradient(circle at 50% 46%, var(--hl-soft), transparent 64%), var(--surface-2)}
+.brain-stage .brain{max-width:860px;margin:0 auto}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:18px;min-width:0}
+.steps{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px}
+.step{font:600 11px/1 var(--f-mono);letter-spacing:.06em;text-transform:uppercase;padding:6px 9px;border-radius:999px;border:1px solid var(--line);color:var(--muted)}
+.step.on{background:var(--ink);color:var(--surface);border-color:var(--ink)}
+.step.done{color:var(--hl-line);border-color:var(--hl-line)}
+.panel h2{font:700 22px/1.15 var(--f-display);letter-spacing:-0.01em;margin:0 0 8px;text-wrap:balance}
+.panel p{margin:0 0 12px}
+.eyebrow{font:600 11px var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--hl-line);margin:0 0 4px}
+.panel h3{font:600 11px var(--f-mono);letter-spacing:.07em;text-transform:uppercase;color:var(--muted);margin:16px 0 6px}
+.panel ul{margin:0;padding-left:18px;font-size:14px}
+.choices{display:flex;flex-direction:column;gap:6px}
+.choice{text-align:left;padding:9px 12px;border:1px solid var(--line);background:var(--surface-2);border-radius:8px;cursor:pointer;color:var(--ink);font:inherit}
+.choice b{display:block;font-size:14px}
+.choice small{display:block;color:var(--muted);font-size:12px;line-height:1.35}
+.choice:hover:not([disabled]){border-color:var(--hl-line)}
+.choice[disabled]{cursor:default}
+.choice.wrong{opacity:.45}
+.choice.wrong b{text-decoration:line-through}
+.msg{font-size:13px;padding:9px 11px;border-radius:8px;background:var(--surface-2);border:1px solid var(--line);margin:0 0 12px}
+.msg.bad{border-color:var(--miss)}
+.msg.good{border-color:var(--hl-line);background:var(--hl-soft)}
+.btn{font:700 13px/1 var(--f-body);border:1px solid var(--line);background:var(--surface-2);color:var(--ink);border-radius:6px;padding:9px 12px;cursor:pointer;white-space:nowrap}
+.btn:hover{border-color:var(--furn-line)}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:transparent}
+.btn.ghost{background:transparent}
+.btn:focus-visible,.choice:focus-visible,canvas:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.row{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.foot{margin-top:18px;font-size:13px;color:var(--muted)}
+.foot a{color:var(--accent)}
+.picker .part{fill:transparent;cursor:pointer;transition:fill-opacity .15s}
+.picker .part:hover,.picker .part:focus-visible{fill:var(--hl);fill-opacity:.5;outline:none}
+.picker .part.miss{fill:var(--miss);fill-opacity:.32}
+.picker .part:not(.deep){stroke-opacity:.35;stroke-width:1.3}
+.picker .part.deep{stroke:var(--brain-line);stroke-width:2.2;stroke-dasharray:5 4}
+.picker .part.deep:not(:hover):not(.miss){fill:var(--brain-hi);fill-opacity:.55}
+@media (prefers-reduced-motion: reduce){.brain.full .hl{animation:none}.picker .part{transition:none}}
 </style>
 </head>
 <body>
@@ -198,102 +128,25 @@ table.score th .sw{width:8px;height:8px;margin-right:3px;vertical-align:0}
 <div class="app">
   <header class="top">
     <div>
-      <h1>Common Room Lab</h1>
-      <p class="lede">Up to six people share a kitchen-lounge, chat, and get on with everyday jobs. Give each of them a different mix of perceptual, motor and cognitive difficulties, then watch how their routes, conversations and plans change. Or play Brain detective: spot which part of the brain is behind someone's hidden difficulty.</p>
+      <h1>Brain Detective</h1>
+      <p>Someone in the room has a hidden difficulty. Watch them, name the difficulty, then find where it lives in the brain.</p>
     </div>
-    <div class="scale-note">Floor plan ≈ 11.6 × 7.1 m · grid square = 0.5 m</div>
+    <div class="stats"><span class="stat">Case<b id="sRound">1</b></span><span class="stat">Score<b id="sScore">0</b></span></div>
   </header>
-
-  <div class="layout">
-    <div class="col">
-      <section class="card" aria-label="Room simulation">
-        <div class="toolbar">
-          <button class="btn primary" id="playBtn" type="button">Pause</button>
-          <div class="seg" role="group" aria-label="Simulation speed">
-            <button type="button" data-speed="0.5" aria-pressed="false">0.5×</button>
-            <button type="button" data-speed="1" aria-pressed="true">1×</button>
-            <button type="button" data-speed="2" aria-pressed="false">2×</button>
-            <button type="button" data-speed="4" aria-pressed="false">4×</button>
-          </div>
-          <span class="clock" id="clock" aria-live="off">00:00</span>
-          <span class="spacer"></span>
-          <label class="check"><input type="checkbox" id="overlayChk" checked> Show what the selected person perceives</label>
-          <label class="check"><input type="checkbox" id="pathsChk"> All routes</label>
+  <div class="game">
+    <section class="stage" aria-label="Stage">
+      <div id="roomView">
+        <div class="stage-scroll"><canvas id="room" aria-label="Top-down view of the room. The person with the dashed ring is the one to watch."></canvas></div>
+        <div class="stage-bar">
+          <span class="status" id="status" aria-live="off"></span>
+          <button class="btn" type="button" id="speedBtn">Speed 1×</button>
         </div>
-        <div class="toolbar">
-          <label for="allTask" class="muted" style="font-size:13px">Compare everyone on one job:</label>
-          <select id="allTask"></select>
-          <button class="btn" id="allGo" type="button">Everyone starts</button>
-          <span class="spacer"></span>
-          <button class="btn ghost" id="restartBtn" type="button">Restart room</button>
-        </div>
-        <div class="stage-scroll"><div class="stage"><canvas id="room" tabindex="0" aria-label="Top-down view of the shared room. Click a person to select them."></canvas></div></div>
-        <div class="stage-foot" id="legend"></div>
-      </section>
-
-      <div class="lower">
-        <section class="card">
-          <div class="card-h">
-            <h2>What happened</h2>
-            <div class="seg" role="group" aria-label="Filter the log">
-              <button type="button" data-filter="all" aria-pressed="true">All</button>
-              <button type="button" data-filter="events" aria-pressed="false">Difficulties</button>
-              <button type="button" data-filter="selected" aria-pressed="false">Selected</button>
-            </div>
-          </div>
-          <ul class="log" id="log" aria-live="off"></ul>
-        </section>
-        <section class="card">
-          <div class="card-h"><h2>Scoreboard</h2><button class="btn ghost" id="clearStats" type="button">Clear scores</button></div>
-          <div class="table-wrap"><table class="score" id="score"></table></div>
-          <p class="hint" style="padding:0 14px 14px">Counts are moments where a difficulty changed behaviour. Avg time is per finished job, in simulated minutes:seconds.</p>
-        </section>
       </div>
-    </div>
-
-    <aside class="col">
-      <section class="card" id="gameCard">
-        <div class="card-h"><h2>Brain detective</h2><span class="score-pill" id="gScore">Score 0</span></div>
-        <div class="card-b" id="gameBody"></div>
-      </section>
-      <section class="card">
-        <div class="card-h"><h2>People in the room</h2><button class="btn" id="addBtn" type="button">Add person</button></div>
-        <div class="card-b"><div class="chips" id="chips"></div></div>
-        <div class="card-b" style="border-top:1px solid var(--line)" id="editor"></div>
-      </section>
-      <section class="card">
-        <div class="card-h"><h2>Room supports</h2></div>
-        <div class="card-b supports" id="supports"></div>
-      </section>
-    </aside>
+      <div id="brainView" class="brain-stage" hidden></div>
+    </section>
+    <aside class="panel" id="panel" aria-live="polite"></aside>
   </div>
-
-  <section class="card model">
-    <div class="card-h"><h2>How the model works</h2><span class="scale-note">Every rule below runs locally in this page</span></div>
-    <div class="card-b">
-      <div class="model-grid" id="rules"></div>
-      <p class="disclaimer">These are deliberately simple teaching models built from rules and dice rolls. They are not clinical descriptions of any condition. Real people adapt, use strategies, and vary from day to day. The point is to see how a single difficulty ripples through an ordinary task, and how small changes to the room can soften it.</p>
-    </div>
-  </section>
-</div>
-
-<div class="modal" id="reveal" hidden role="dialog" aria-modal="true" aria-labelledby="revealTitle">
-  <div class="modal-card">
-    <div class="reveal-art" id="revealArt"></div>
-    <div class="reveal-text">
-      <p class="eyebrow" id="revealEyebrow"></p>
-      <h2 id="revealTitle"></h2>
-      <p id="revealRole"></p>
-      <h3>What you saw in the room</h3>
-      <ul id="revealSaw"></ul>
-      <h3>Good to know</h3>
-      <p class="hint" id="revealNote"></p>
-      <div class="row-btns">
-        <button class="btn primary" type="button" id="revealNext">Next case</button>
-        <button class="btn" type="button" id="revealClose">Keep watching</button>
-      </div>
-    </div>
-  </div>
+  <p class="foot">Want to set the difficulties yourself and compare several people? <a href="lab.html">Open the full lab</a>. These are simplified teaching models, not clinical descriptions.</p>
 </div>
 
 <script>
@@ -1192,92 +1045,27 @@ function drawBubble(a) {
 function draw() {
   ctx.setTransform(dpr * scale, 0, 0, dpr * scale, 0, 0);
   drawRoom();
-  const showPaths = $('#pathsChk').checked, showOv = $('#overlayChk').checked, s = sel();
+  const showPaths = false, showOv = false, s = sel();
   if (showPaths) agents.forEach(drawPath);
   if (showOv && s && !hidden(s)) { if (!showPaths) drawPath(s); drawOverlay(s); }
   agents.forEach(drawAgent);
   agents.forEach(drawBubble);
 }
 
-// ---------- UI ----------
-const logEl = $('#log');
-function passes(e) { if (logFilter === 'events') return e.kind !== 'say' && e.kind !== 'done'; if (logFilter === 'selected') return e.id === selId; return true; }
-function entryHTML(e) {
-  const who = e.name ? `<span class="who" style="color:${e.color}">${esc(e.name)}</span> ` : '';
-  let body;
-  const hid = hiddenId(e.id);
-  if (e.kind === 'say') body = `${e.lang && !hid ? `<span class="tag" style="background:var(--t-language)">${TAGS.language}</span>` : ''}${who}<span class="quote">“${esc(e.text)}”</span>`;
-  else if (hid && e.kind in blank()) body = `<span class="tag" style="background:var(--muted)">Clue</span>${who}${esc(e.text)}`;
-  else body = `<span class="tag" style="background:var(--t-${e.kind})">${TAGS[e.kind] || e.kind}</span>${who}${esc(e.text)}`;
-  return `<time>${fmt(e.t)}</time><span>${body}</span>`;
-}
-function renderLogEntry(e, prepend) {
-  if (!passes(e)) return;
-  const li = document.createElement('li'); li.innerHTML = entryHTML(e);
-  const empty = logEl.querySelector('.empty'); if (empty) empty.remove();
-  if (prepend) logEl.prepend(li); else logEl.append(li);
-  while (logEl.children.length > 160) logEl.lastChild.remove();
-}
-function renderLog() {
-  logEl.innerHTML = '';
-  const items = LOG.filter(passes).slice(0, 160);
-  if (!items.length) { logEl.innerHTML = '<li class="empty">Nothing yet. Events appear here as people talk and work.</li>'; return; }
-  for (const e of items) renderLogEntry(e, false);
-}
-document.querySelectorAll('[data-filter]').forEach(b => b.addEventListener('click', () => {
-  logFilter = b.dataset.filter;
-  document.querySelectorAll('[data-filter]').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
-  renderLog();
-}));
 
-function impSummary(a) {
-  if (hidden(a)) return 'Hidden difficulty';
-  const on = IMPS.filter(i => a.imp[i.k] > 0.02).sort((x, y) => a.imp[y.k] - a.imp[x.k]);
-  if (!on.length) return 'No difficulties';
-  return on.slice(0, 2).map(i => i.short).join(', ') + (on.length > 2 ? ` +${on.length - 2}` : '');
+// ---------- Simple game ----------
+function renderLogEntry() {}
+function addAgent(spec) {
+  const used = new Set(agents.map(a => a.color));
+  const color = COLORS.find(c => !used.has(c)) || pick(COLORS);
+  const usedN = new Set(agents.map(a => a.name));
+  const name = spec && spec.name || NAMES.find(n => !usedN.has(n)) || 'Guest';
+  let pos = STARTS.find(p => !agents.some(a => dist(a, p) < 40)) || { x: 480, y: 450 };
+  if (blockedAt(pos.x, pos.y, R)) pos = { x: 480, y: 450 };
+  const a = makeAgent(name, color, pos, spec ? spec.imp : {});
+  agents.push(a);
+  return a;
 }
-function renderChips() {
-  $('#chips').innerHTML = agents.map(a => `<button type="button" class="chip" data-id="${a.id}" aria-pressed="${a.id === selId}"><span class="dot" style="background:${a.color}"></span><span>${esc(a.name)}<small>${esc(impSummary(a))}</small></span></button>`).join('');
-  $('#chips').querySelectorAll('.chip').forEach(c => c.addEventListener('click', () => select(+c.dataset.id)));
-  $('#addBtn').disabled = agents.length >= 6;
-}
-const level = v => v === 0 ? 'none' : v < 35 ? 'mild' : v < 70 ? 'moderate' : 'severe';
-function buildEditor() {
-  const a = sel(), ed = $('#editor');
-  if (!a) { ed.innerHTML = '<p class="muted" style="margin:0">Select someone in the room, or add a person.</p>'; return; }
-  ed.innerHTML = `
-    <div class="who-row"><span class="dot" style="background:${a.color};width:16px;height:16px"></span><input id="nameInput" class="name-input" value="${esc(a.name)}" maxlength="14" aria-label="Name"><span class="pill" id="statePill"></span></div>
-    <p class="doing" id="doing"></p>
-    <div class="plan-box"><h3 id="planTitle">Plan</h3><div id="plan"></div></div>
-    ${hidden(a) ? `<p class="mystery-note">${esc(a.name)}'s difficulty is hidden. Compare them with the others, or give them a job below to test an idea. Long jobs like Make tea show planning and memory. Walking across the room shows movement and judging space.</p>` : `<div class="sliders">${IMPS.map(i => `
-      <div class="slider">
-        <div class="slider-head"><label for="imp-${i.k}"><span class="sw" style="background:var(--t-${i.k})"></span>${i.label}</label><output id="out-${i.k}" for="imp-${i.k}"></output></div>
-        <input type="range" id="imp-${i.k}" min="0" max="100" step="5" value="${Math.round(a.imp[i.k] * 100)}" style="accent-color:var(--t-${i.k})">
-        <p class="hint">${i.desc}</p>
-      </div>`).join('')}</div>
-    <div class="row-btns">
-      <button class="btn" type="button" data-preset="none">No difficulties</button>
-      <button class="btn" type="button" data-preset="random">Random mix</button>
-      ${game.active ? '' : '<button class="btn" type="button" data-preset="all">Copy to everyone</button>'}
-    </div>`}
-    <h3 class="sub">Give ${esc(a.name)} a job now</h3>
-    <div class="task-grid">${Object.entries(TASKS).map(([k, t]) => `<button class="btn" type="button" data-task="${k}">${t.name}</button>`).join('')}</div>
-    ${a.id === game.caseId && game.active ? '' : `<div class="row-btns"><button class="btn ghost danger" type="button" id="removeBtn">Remove ${esc(a.name)}</button></div>`}`;
-  const setOut = k => { const v = Math.round(a.imp[k] * 100); $('#out-' + k).textContent = `${v} · ${level(v)}`; };
-  if (!hidden(a)) IMPS.forEach(i => { setOut(i.k); $('#imp-' + i.k).addEventListener('input', e => { a.imp[i.k] = +e.target.value / 100; setOut(i.k); renderChips(); }); });
-  $('#nameInput').addEventListener('input', e => { a.name = e.target.value.trim() || 'Someone'; renderChips(); renderScore(); });
-  ed.querySelectorAll('[data-preset]').forEach(b => b.addEventListener('click', () => {
-    const p = b.dataset.preset;
-    if (p === 'none') a.imp = blank();
-    if (p === 'random') { a.imp = blank(); const ks = IMPS.map(i => i.k).sort(() => rnd() - 0.5).slice(0, 1 + Math.floor(rnd() * 3)); ks.forEach(k => a.imp[k] = Math.round((0.3 + rnd() * 0.6) * 20) / 20); }
-    if (p === 'all') agents.forEach(b2 => { b2.imp = { ...a.imp }; });
-    buildEditor(); renderChips();
-  }));
-  ed.querySelectorAll('[data-task]').forEach(b => b.addEventListener('click', () => { startTask(a, b.dataset.task); log(a, 'support', `was asked to “${TASKS[b.dataset.task].name}”`); refreshLive(); }));
-  if ($('#removeBtn')) $('#removeBtn').addEventListener('click', () => removeAgent(a));
-  refreshLive();
-}
-function select(id) { selId = id; renderChips(); buildEditor(); if (logFilter === 'selected') renderLog(); }
 function describe(a) {
   const step = a.run && a.run.plan[0], st = step && STATIONS[step.st];
   switch (a.state) {
@@ -1297,113 +1085,6 @@ function describe(a) {
   }
   return '';
 }
-const STATE_LABEL = { idle: 'Idle', thinking: 'Thinking', walking: 'Walking', searching: 'Searching', waiting: 'Waiting', acting: 'Working', confused: 'Lost track', distracted: 'Distracted', talking: 'Talking', bumped: 'Bumped' };
-function refreshLive() {
-  $('#clock').textContent = fmt(simT);
-  const a = sel(); if (!a || !$('#doing')) return;
-  $('#doing').textContent = describe(a);
-  const pill = $('#statePill'); pill.textContent = a.purpose === 'help' && a.state === 'walking' ? 'Helping' : STATE_LABEL[a.state] || a.state;
-  const pt = $('#planTitle'), pl = $('#plan');
-  if (a.run) {
-    const def = a.run.def, total = def.steps.length, doneN = def.steps.filter(s => a.run.done.has(s.verb)).length;
-    pt.textContent = `${def.name} · ${doneN} of ${total} steps done`;
-    const correct = def.steps.filter(s => !a.run.done.has(s.verb)).map(s => s.verb);
-    const html = a.run.plan.map((s, i) => `<li class="${i === 0 ? 'cur' : ''} ${correct[i] !== s.verb ? 'off' : ''}">${esc(s.verb)}</li>`).join('');
-    const doneList = def.steps.filter(s => a.run.done.has(s.verb)).map(s => s.verb);
-    pl.innerHTML = `<ol class="plan">${html || '<li>checking the job is finished</li>'}</ol>${doneList.length ? `<div class="done">Done: ${esc(doneList.join(', '))}</div>` : ''}`;
-    if (a.run.plan.some((s, i) => correct[i] !== s.verb)) pl.insertAdjacentHTML('beforeend', '<div class="done" style="color:var(--t-planning)">Green steps differ from the usual order.</div>');
-  } else { pt.textContent = 'Plan'; pl.innerHTML = '<span class="muted" style="font-size:13px">No job right now.</span>'; }
-}
-function renderScore() {
-  const cols = IMPS.map(i => i.k);
-  let h = `<thead><tr><th>Person</th><th>Jobs</th><th>Avg time</th>${IMPS.map(i => `<th title="${i.label}"><span class="sw" style="background:var(--t-${i.k})"></span>${i.short}</th>`).join('')}<th>Asked help</th><th>Gave up</th></tr></thead><tbody>`;
-  for (const a of agents) {
-    const s = a.stats, td = v => `<td class="${v ? '' : 'zero'}">${v}</td>`;
-    h += `<tr><td><span class="namecell"><span class="dot" style="background:${a.color}"></span>${esc(a.name)}</span></td>${td(s.done)}<td class="${s.done ? '' : 'zero'}">${s.done ? fmt(s.time / s.done) : '–'}</td>${cols.map(k => hidden(a) ? '<td class="zero">?</td>' : td(s.ev[k])).join('')}${td(s.help)}${td(s.abandoned)}</tr>`;
-  }
-  $('#score').innerHTML = h + '</tbody>';
-}
-
-function addAgent(spec) {
-  const used = new Set(agents.map(a => a.color));
-  const color = COLORS.find(c => !used.has(c)) || pick(COLORS);
-  const usedN = new Set(agents.map(a => a.name));
-  const name = spec && spec.name || NAMES.find(n => !usedN.has(n)) || 'Guest';
-  let pos = STARTS.find(p => !agents.some(a => dist(a, p) < 40)) || { x: 480, y: 450 };
-  if (blockedAt(pos.x, pos.y, R)) pos = { x: 480, y: 450 };
-  const a = makeAgent(name, color, pos, spec ? spec.imp : {});
-  agents.push(a);
-  return a;
-}
-function removeAgent(a) {
-  detachConvo(a); release(a);
-  agents.forEach(b => { if (b.helpFor === a) { b.helpFor = null; b.purpose = 'step'; resume(b); } });
-  agents = agents.filter(x => x !== a);
-  selId = agents.length ? agents[0].id : null;
-  renderChips(); buildEditor(); renderScore();
-}
-const currentSpecs = () => agents.map(a => ({ name: a.name, imp: { ...a.imp }, color: a.color, mystery: a.id === game.caseId }));
-const defaultSpecs = () => DEFAULTS.map(d => ({ ...d, imp: { ...d.imp } }));
-function restart(specs) {
-  game.caseId = null;
-  agents = []; convos = []; SPEECH = []; LOG = []; pairCD = {}; simT = 0;
-  Object.assign(world, { tea: 0, notes: 0, books: 0, mail: 0, plantT: -99 });
-  for (const k in STATIONS) STATIONS[k].users.clear();
-  specs.forEach(s => { const a = addAgent(s); if (s.color) a.color = s.color; if (s.mystery) { game.caseId = a.id; a.timer = 0.4; } });
-  selId = game.caseId || (agents.length ? agents[0].id : null);
-  renderChips(); buildEditor(); renderScore(); renderLog(); renderGame();
-}
-
-$('#playBtn').addEventListener('click', () => { running = !running; $('#playBtn').textContent = running ? 'Pause' : 'Play'; });
-document.querySelectorAll('[data-speed]').forEach(b => b.addEventListener('click', () => {
-  speed = +b.dataset.speed; document.querySelectorAll('[data-speed]').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
-}));
-$('#restartBtn').addEventListener('click', () => restart(currentSpecs()));
-$('#addBtn').addEventListener('click', () => { if (agents.length >= 6) return; const a = addAgent(null); select(a.id); renderScore(); });
-$('#clearStats').addEventListener('click', () => { agents.forEach(a => a.stats = newStats()); renderScore(); });
-$('#allTask').innerHTML = Object.entries(TASKS).map(([k, t]) => `<option value="${k}">${t.name}</option>`).join('');
-$('#allGo').addEventListener('click', () => {
-  const k = $('#allTask').value;
-  agents.forEach(a => startTask(a, k, false));
-  log(null, 'support', `Everyone was asked to “${TASKS[k].name}” at the same time`);
-});
-canvas.addEventListener('click', e => {
-  const r = canvas.getBoundingClientRect(), x = (e.clientX - r.left) / scale, y = (e.clientY - r.top) / scale;
-  let best = null, bd = 30;
-  for (const a of agents) { const d = Math.hypot(a.x - x, a.y - y); if (d < bd) { bd = d; best = a; } }
-  if (best) select(best.id);
-});
-canvas.addEventListener('keydown', e => {
-  if (e.key === 'Tab' || !agents.length) return;
-  if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
-    const i = agents.findIndex(a => a.id === selId), n = agents.length;
-    select(agents[(i + (e.key === 'ArrowRight' ? 1 : n - 1)) % n].id); e.preventDefault();
-  }
-});
-
-$('#supports').innerHTML = SUPPORTS.map(s => `<label class="support" for="sup-${s.k}"><input type="checkbox" id="sup-${s.k}"><b>${s.name}</b><span>${s.desc}</span></label>`).join('');
-SUPPORTS.forEach(s => $('#sup-' + s.k).addEventListener('change', e => {
-  supports[s.k] = e.target.checked;
-  if (s.k === 'clear') { rebuildObs(); agents.forEach(a => { if (a.state === 'walking') planPath(a); }); }
-  log(null, 'support', `${s.name} turned ${e.target.checked ? 'on' : 'off'}`);
-}));
-
-$('#legend').innerHTML = IMPS.map(i => `<span class="legend-item"><span class="sw" style="background:var(--t-${i.k})"></span>${i.short}</span>`).join('') +
-  '<span class="legend-item">· Dashed ring: clearance they plan for · ✕: where they think the target is · Click a person to select, arrow keys to switch</span>';
-
-const RULES = [
-  ['spatial', 'Spatial perception', 'When heading somewhere, they aim at a spot up to <code>severity × 120 px</code> (about 1.5 m) from the real place. On arrival they notice, and the next guess is 55% closer. They also plan routes with less clearance (18 px down to 5 px, against a 12 px body), so they clip corners and bump into furniture.'],
-  ['field', 'Visual field (left side)', 'If the next place is more than 20° to their left, there is a <code>severity × 85%</code> chance they don\'t see it. They turn right to scan and try again, up to three times. The shaded wedge in the overlay is the side they tend to miss.'],
-  ['motor', 'Movement', 'Walking speed drops by up to 55% and a side-to-side wobble is added, which can push them into things. Hand tasks take up to 2.3× as long, and each attempt has up to a <code>40%</code> chance to slip and need redoing.'],
-  ['attention', 'Attention', 'Each second there is up to an <code>8%</code> chance something in the room pulls them away, and each voice within 3.5 m has up to a 40% chance. They miss up to half of what\'s said to them. A distraction mid-task throws away the action in progress.'],
-  ['language', 'Language', 'Each content word has up to a <code>50%</code> chance of a word-finding pause, a swapped related word (kettle → pot), a vague "thing", or a false start. Above 55%, small words start dropping out. They are slower to start talking and misunderstand up to 55% of what they hear.'],
-  ['planning', 'Planning', 'When starting a job, neighbouring steps can swap (up to 35% each) or drop out (up to 18%). The slip shows when a step can\'t work yet, such as pouring before boiling, and they backtrack. Starting each step takes up to 1.6 s longer, and they sometimes repeat the step they just finished.'],
-  ['memory', 'Memory', 'While walking, up to a <code>9%</code> chance per second of losing the goal. After a pause they recall it, or else restart the job or give up. They may forget a step is already done, forget names when greeting, and lose the thread after a distraction.'],
-  ['support', 'Help and cues', 'After three setbacks on one job, a person may ask the least-affected person nearby for help. The helper walks to the place (using their own perception, so they can be wrong too). That cue cuts the asker\'s spatial, memory and planning slips for the rest of the job.']
-];
-$('#rules').innerHTML = RULES.map(([k, t, p]) => `<div class="rule"><h3><span class="sw" style="background:var(--t-${k})"></span>${t}</h3><p>${p}</p></div>`).join('');
-
-// ---------- Loop ----------
 // ---------- Brain detective ----------
 const REGIONS = {
   parietal: { name: 'Parietal lobe', imp: 'spatial', short: 'Sense of space and distance',
@@ -1496,92 +1177,150 @@ function brainSVG(key, full) {
   return g.join('');
 }
 
-const MYSTERY_NAMES = ['Robin', 'Sam', 'Noa', 'Kai', 'Ari', 'Lee', 'Maya', 'Tom'];
-const caseAgent = () => agents.find(a => a.id === game.caseId);
-function startCase() {
-  const keys = Object.keys(REGIONS);
-  let pool = keys.filter(k => !game.found.has(k) && k !== game.lastKey);
-  if (!pool.length) pool = keys.filter(k => k !== game.lastKey);
-  const key = pick(pool), sev = game.round < 3 ? 0.85 : game.round < 6 ? 0.65 : 0.5;
-  Object.assign(game, { active: true, answer: key, lastKey: key, solved: false, tries: 0, wrong: new Set(), msg: '' });
-  game.round++;
-  const imp = {}; imp[REGIONS[key].imp] = sev;
-  restart([{ name: 'Ada', imp: {} }, { name: pick(MYSTERY_NAMES), imp, mystery: true }, { name: 'Ben', imp: {} }]);
-  log(null, 'support', `Case ${game.round} started. Watch ${caseAgent().name}; Ada and Ben have no difficulties`);
-}
-function endGame() { game.active = false; closeReveal(); restart(defaultSpecs()); }
-function afterSolve() { renderChips(); buildEditor(); renderScore(); renderLog(); renderGame(); }
-function guess(k) {
-  if (!game.active || game.solved) return;
-  const a = caseAgent(), r = REGIONS[k];
-  game.tries++;
-  if (k === game.answer) {
-    const pts = Math.max(1, 4 - game.tries);
-    game.score += pts; game.solved = true; game.found.add(k); game.lastPoints = pts; game.msg = '';
-    log(null, 'support', `Case ${game.round} solved: the ${r.name}`);
-    afterSolve(); openReveal(k, false);
-  } else {
-    game.wrong.add(k);
-    game.msg = `Not the ${esc(r.name)}. It mainly handles ${esc(r.short.toLowerCase())}. Does that match what ${esc(a ? a.name : 'they')} keeps doing?`;
-    renderGame();
-  }
-}
-function giveUp() { if (!game.active || game.solved) return; game.solved = true; game.lastPoints = 0; afterSolve(); openReveal(game.answer, false); }
-function renderGame() {
-  const body = $('#gameBody'); if (!body) return;
-  $('#gScore').textContent = `Score ${game.score}`;
-  const atlas = game.found.size ? `<h3 class="sub">Brain areas found · ${game.found.size} of 7</h3><div class="atlas-row">${[...game.found].map(k => `<button type="button" class="atlas-chip" data-atlas="${k}">${esc(REGIONS[k].name)}</button>`).join('')}</div>` : '';
-  if (!game.active) {
-    body.innerHTML = `<p class="g-intro">One person in the room gets a hidden difficulty. Watch how they move, talk and work, then pick the part of the brain you think is involved. Guess right to see that area up close.</p><div class="row-btns" style="margin:0"><button class="btn primary" type="button" id="gStart">Start a case</button></div>${atlas}`;
-  } else {
-    const a = caseAgent(), nm = esc(a ? a.name : 'the mystery person');
-    const head = game.solved ? `<p class="g-status ok">Case ${game.round}: the ${esc(REGIONS[game.answer].name)}${game.lastPoints ? ` · +${game.lastPoints}` : ''}</p>`
-      : `<p class="g-status">Case ${game.round}. Watch <b>${nm}</b> and compare them with Ada and Ben. Where is the problem? The first guess scores 3 points, the second 2, after that 1.</p>`;
-    const btns = Object.entries(REGIONS).map(([k, r]) => `<button type="button" class="region${game.wrong.has(k) ? ' wrong' : ''}${game.solved && k === game.answer ? ' right' : ''}" data-region="${k}"${game.solved || game.wrong.has(k) ? ' disabled' : ''}>${brainSVG(k, false)}<span><b>${esc(r.name)}</b><small>${esc(r.short)}</small></span></button>`).join('');
-    body.innerHTML = head + (game.msg ? `<p class="g-msg" role="status">${game.msg}</p>` : '') + `<div class="regions">${btns}</div>` +
-      `<div class="row-btns">${game.solved ? '<button class="btn primary" type="button" id="gNext">Next case</button><button class="btn" type="button" id="gShow">See the picture again</button>' : '<button class="btn ghost" type="button" id="gGiveUp">Show the answer</button>'}<button class="btn ghost" type="button" id="gEnd">End game</button></div>` + atlas;
-  }
-  const on = (id, fn) => { const el = body.querySelector('#' + id); if (el) el.addEventListener('click', fn); };
-  on('gStart', startCase); on('gNext', startCase); on('gGiveUp', giveUp); on('gEnd', endGame); on('gShow', () => openReveal(game.answer, false));
-  body.querySelectorAll('[data-region]').forEach(b => b.addEventListener('click', () => guess(b.dataset.region)));
-  body.querySelectorAll('[data-atlas]').forEach(b => b.addEventListener('click', () => openReveal(b.dataset.atlas, true)));
-}
-let lastFocus = null;
-function openReveal(k, fromAtlas) {
-  const r = REGIONS[k], a = caseAgent();
-  $('#revealArt').innerHTML = brainSVG(k, true);
-  const live = !fromAtlas && game.active && k === game.answer && a;
-  $('#revealEyebrow').textContent = !live ? 'From your brain atlas' : game.lastPoints ? `Case ${game.round} solved · +${game.lastPoints} point${game.lastPoints > 1 ? 's' : ''}` : `Case ${game.round} · answer shown`;
-  $('#revealTitle').textContent = r.name;
-  $('#revealRole').textContent = r.role;
-  let saw = `<li>${esc(r.signs)}</li>`;
-  if (live) {
-    const ex = LOG.filter(e => e.id === a.id && (e.kind === r.imp || (r.imp === 'language' && e.kind === 'say' && e.lang))).slice(0, 3);
-    const n = a.stats.ev[r.imp];
-    saw = n ? `<li>${esc(a.name)} showed this ${n} time${n > 1 ? 's' : ''} so far. For example:</li>` + ex.map(e => `<li>${e.kind === 'say' ? `said “${esc(e.text)}”` : esc(e.text)}</li>`).join('') : `<li>${esc(a.name)} hadn’t shown it yet. Typical signs: ${esc(r.signs.charAt(0).toLowerCase() + r.signs.slice(1))}</li>`;
-  }
-  $('#revealSaw').innerHTML = saw;
-  $('#revealNote').textContent = r.note + ' Real brains spread every skill across networks of areas; this game matches each difficulty to the area most often taught for it.';
-  $('#revealNext').hidden = !game.active;
-  lastFocus = document.activeElement;
-  $('#reveal').hidden = false;
-  $('#revealClose').focus();
-}
-function closeReveal() { $('#reveal').hidden = true; if (lastFocus && lastFocus.focus) lastFocus.focus(); }
-$('#revealClose').addEventListener('click', closeReveal);
-$('#revealNext').addEventListener('click', () => { closeReveal(); startCase(); });
-$('#reveal').addEventListener('click', e => { if (e.target.id === 'reveal') closeReveal(); });
-document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('#reveal').hidden) closeReveal(); });
 
-restart(defaultSpecs());
-let last = performance.now(), uiT = 0, scoreT = 0;
+const PARTS = {
+  prefrontal: { name: 'Prefrontal cortex', role: 'planning and putting steps in order', d: 'M-10,-10 L262,-10 L248,120 L238,256 L176,266 L-10,310Z' },
+  motor: { name: 'Motor cortex', role: 'starting voluntary movements', d: 'M262,-10 L332,-10 L314,90 L290,168 L284,242 L238,256 L248,120Z' },
+  parietal: { name: 'Parietal lobe', role: 'sensing space, distance and touch', d: BR.lobes.parietal },
+  occipital: { name: 'Occipital lobe', role: 'vision', d: BR.lobes.occipital },
+  temporal: { name: 'Temporal lobe', role: 'hearing and recognising sounds, faces and objects', d: BR.lobes.temporal },
+  broca: { name: 'Broca’s area', role: 'producing speech', ell: [210, 236, 36, 21, -12] },
+  wernicke: { name: 'Wernicke’s area', role: 'understanding speech', ell: [386, 266, 40, 24, -8] },
+  cerebellum: { name: 'Cerebellum', role: 'smooth, coordinated movement and balance', d: BR.cbl },
+  stem: { name: 'Brainstem', role: 'breathing, heartbeat and staying awake', d: BR.stem },
+  thalamus: { name: 'Thalamus', role: 'filtering what you pay attention to', d: BR.thal },
+  hippocampus: { name: 'Hippocampus', role: 'forming new memories', d: BR.hippo }
+};
+const CASES = {
+  spatial: { label: 'Judging space and distance', small: 'Where things are and how much room there is', answers: ['parietal'], region: 'parietal', hint: 'Near the top of the head, toward the back.' },
+  field: { label: 'Seeing one side', small: 'Noticing things on the left', answers: ['occipital'], region: 'occipital', hint: 'The very back of the brain.' },
+  motor: { label: 'Moving smoothly', small: 'Steady walking and careful hands', answers: ['cerebellum', 'motor'], region: 'cerebellum', hint: 'The small wrinkled ball tucked under the back.' },
+  attention: { label: 'Staying focused', small: 'Ignoring voices and things around them', answers: ['thalamus'], region: 'thalamus', hint: 'Deep in the middle of the brain. Look for the dashed shapes.' },
+  language: { label: 'Finding and understanding words', small: 'Saying the right word, following others', answers: ['broca', 'wernicke'], region: 'language', hint: 'On the side of the brain, along the big groove.' },
+  planning: { label: 'Planning steps', small: 'Doing a job in the right order', answers: ['prefrontal'], region: 'prefrontal', hint: 'Right behind the forehead.' },
+  memory: { label: 'Remembering', small: 'Keeping track of what they were doing', answers: ['hippocampus'], region: 'hippocampus', hint: 'Deep inside and low down: a curled dashed shape.' }
+};
+const MYSTERY_NAMES = ['Robin', 'Sam', 'Noa', 'Kai', 'Ari', 'Lee', 'Maya', 'Tom'];
+const G = { round: 0, score: 0, key: null, last: null, step: 1, tries1: 0, tries2: 0, wrong: new Set(), miss: new Set(), msg: '', msgKind: '', pts: 0 };
+const caseAgent = () => agents.find(a => a.id === game.caseId);
+
+function setupRoom(specs) {
+  agents = []; convos = []; SPEECH = []; LOG = []; pairCD = {}; simT = 0;
+  Object.assign(world, { tea: 0, notes: 0, books: 0, mail: 0, plantT: -99 });
+  for (const k in STATIONS) STATIONS[k].users.clear();
+  specs.forEach(s => { const a = addAgent(s); if (s.mystery) { game.caseId = a.id; selId = a.id; a.timer = 0.4; } });
+}
+function newCase() {
+  const keys = Object.keys(CASES).filter(k => k !== G.last);
+  const key = pick(keys);
+  Object.assign(G, { key, last: key, step: 1, tries1: 0, tries2: 0, wrong: new Set(), miss: new Set(), msg: '', msgKind: '', pts: 0 });
+  G.round++;
+  const imp = {}; imp[key] = G.round <= 3 ? 0.85 : 0.65;
+  Object.assign(game, { active: true, solved: false });
+  setupRoom([{ name: 'Ada', imp: {} }, { name: pick(MYSTERY_NAMES), imp, mystery: true }, { name: 'Ben', imp: {} }]);
+  running = true;
+  $('#roomView').hidden = false; $('#brainView').hidden = true;
+  render();
+}
+const ptsFor = tries => tries === 1 ? 2 : tries === 2 ? 1 : 0;
+function chooseDifficulty(k) {
+  if (G.step !== 1) return;
+  G.tries1++;
+  const a = caseAgent();
+  if (k === G.key) {
+    const p = ptsFor(G.tries1); G.pts += p; G.score += p;
+    G.step = 2; G.msg = `Yes, ${esc(a.name)} has trouble with ${esc(CASES[k].label.toLowerCase())}.${p ? ` +${p}` : ''}`; G.msgKind = 'good';
+    running = false;
+    $('#roomView').hidden = true; $('#brainView').hidden = false;
+    $('#brainView').innerHTML = pickerSVG();
+    $('#brainView').querySelectorAll('[data-part]').forEach(el => {
+      el.addEventListener('click', () => choosePart(el.dataset.part));
+      el.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); choosePart(el.dataset.part); } });
+    });
+  } else {
+    G.wrong.add(k);
+    G.msg = `Not quite. Keep watching ${esc(a.name)} and compare them with Ada and Ben.`; G.msgKind = 'bad';
+  }
+  render();
+}
+function choosePart(part) {
+  if (G.step !== 2) return;
+  G.tries2++;
+  const c = CASES[G.key], pp = PARTS[part];
+  if (c.answers.includes(part)) {
+    const p = ptsFor(G.tries2); G.pts += p; G.score += p;
+    G.step = 3; game.solved = true;
+    $('#brainView').innerHTML = brainSVG(c.region, true);
+  } else {
+    G.miss.add(part);
+    const el = $('#brainView').querySelector(`[data-part="${part}"]`); if (el) el.classList.add('miss');
+    G.msg = `That’s the ${esc(pp.name)}. It mainly handles ${esc(pp.role)}. Try another spot.`; G.msgKind = 'bad';
+  }
+  render();
+}
+function pickerSVG() {
+  const p = 'pk' + (svgN++);
+  const part = (k, cls = '') => {
+    const s = PARTS[k], attrs = `class="part${cls}" data-part="${k}" tabindex="0" role="button" aria-label="${esc(s.name)}"`;
+    return s.ell ? `<ellipse cx="${s.ell[0]}" cy="${s.ell[1]}" rx="${s.ell[2]}" ry="${s.ell[3]}" transform="rotate(${s.ell[4]} ${s.ell[0]} ${s.ell[1]})" ${attrs}/>` : `<path d="${s.d}" ${attrs}/>`;
+  };
+  return `<svg class="brain picker" viewBox="-20 -20 660 470" role="group" aria-label="Side view of the brain. Choose a part.">` +
+    `<defs><radialGradient id="${p}g" cx="0.38" cy="0.3" r="0.8"><stop offset="0" style="stop-color:var(--brain-hi)"/><stop offset="1" style="stop-color:var(--brain-lo)"/></radialGradient>` +
+    `<clipPath id="${p}c"><path d="${BR.cer}"/></clipPath><clipPath id="${p}k"><path d="${BR.cbl}"/></clipPath></defs>` +
+    `<path d="${BR.stem}" fill="url(#${p}g)" class="part-base"/>${part('stem')}` +
+    `<path d="${BR.cbl}" fill="url(#${p}g)"/><g clip-path="url(#${p}k)">${BR.folia.map(d => `<path d="${d}" class="sulc"/>`).join('')}</g>${part('cerebellum')}<path d="${BR.cbl}" class="edge"/>` +
+    `<path d="${BR.cer}" fill="url(#${p}g)"/><g clip-path="url(#${p}c)">` +
+    Object.keys(BR.lobes).map(k => `<path d="${BR.lobes[k]}" class="lobe" style="fill:var(--lobe-${k})"/>`).join('') +
+    BR.sulci.map(d => `<path d="${d}" class="sulc"/>`).join('') + `<path d="${BR.sylvian}" class="sulc big"/>` +
+    `<ellipse cx="250" cy="100" rx="170" ry="46" fill="#FFFFFF" opacity="0.12"/>` +
+    ['prefrontal', 'motor', 'parietal', 'occipital', 'temporal', 'broca', 'wernicke'].map(k => part(k)).join('') +
+    `</g><path d="${BR.cer}" class="edge"/>${part('thalamus', ' deep')}${part('hippocampus', ' deep')}` +
+    `<text x="22" y="300" class="orient" text-anchor="middle">FRONT</text><text x="590" y="300" class="orient" text-anchor="middle">BACK</text></svg>`;
+}
+function latestClue(a) {
+  return LOG.find(e => e.id === a.id && (e.kind in blank() || (e.kind === 'say' && e.lang)));
+}
+function render() {
+  $('#sRound').textContent = G.round; $('#sScore').textContent = G.score;
+  const a = caseAgent(), nm = esc(a ? a.name : 'them'), c = CASES[G.key];
+  const steps = `<div class="steps"><span class="step ${G.step === 1 ? 'on' : 'done'}">1 · Difficulty</span><span class="step ${G.step === 2 ? 'on' : G.step > 2 ? 'done' : ''}">2 · Brain area</span></div>`;
+  const msg = G.msg ? `<p class="msg ${G.msgKind}">${G.msg}</p>` : '';
+  let html = steps;
+  if (G.step === 1) {
+    html += `<h2>What is ${nm} finding hard?</h2><p>${nm} has the dashed ring. Ada and Ben have no difficulties, so compare them.</p>${msg}<div class="choices">` +
+      Object.entries(CASES).map(([k, v]) => `<button type="button" class="choice${G.wrong.has(k) ? ' wrong' : ''}" data-choice="${k}"${G.wrong.has(k) ? ' disabled' : ''}><b>${v.label}</b><small>${v.small}</small></button>`).join('') +
+      `</div><div class="row"><button class="btn ghost" type="button" id="hintBtn">Show a clue</button><button class="btn ghost" type="button" id="skipBtn">Skip this case</button></div>`;
+  } else if (G.step === 2) {
+    html += `${msg}<h2>Where in the brain is it?</h2><p>Click the part of the brain that handles ${esc(c.label.toLowerCase())}. The dashed shapes sit deep inside.</p>` +
+      `<div class="row"><button class="btn ghost" type="button" id="hint2Btn">Show a hint</button></div>`;
+  } else {
+    const r = REGIONS[c.region];
+    const clues = LOG.filter(e => e.id === a.id && (e.kind === G.key || (G.key === 'language' && e.kind === 'say' && e.lang))).slice(0, 3);
+    html += `<p class="eyebrow">Case ${G.round} solved · +${G.pts} point${G.pts === 1 ? '' : 's'}</p><h2>${esc(r.name)}</h2><p>${esc(r.role)}</p>` +
+      `<h3>Clues ${nm} gave</h3><ul>${clues.length ? clues.map(e => `<li>${e.kind === 'say' ? `said “${esc(e.text)}”` : esc(e.text)}</li>`).join('') : `<li>${esc(r.signs)}</li>`}</ul>` +
+      `<h3>Good to know</h3><p style="font-size:13px;color:var(--muted)">${esc(r.note)}${G.key === 'motor' ? ' Choosing the motor cortex also counts.' : ''}</p>` +
+      `<div class="row"><button class="btn primary" type="button" id="nextBtn">Next case</button></div>`;
+  }
+  const panel = $('#panel'); panel.innerHTML = html;
+  panel.querySelectorAll('[data-choice]').forEach(b => b.addEventListener('click', () => chooseDifficulty(b.dataset.choice)));
+  const on = (id, fn) => { const el = panel.querySelector('#' + id); if (el) el.addEventListener('click', fn); };
+  on('nextBtn', newCase); on('skipBtn', newCase);
+  on('hintBtn', () => { const e = latestClue(a); G.msg = e ? `Clue: ${nm} ${e.kind === 'say' ? `said “${esc(e.text)}”` : esc(e.text)}.` : `Nothing yet. Give ${nm} a few more seconds.`; G.msgKind = ''; render(); });
+  on('hint2Btn', () => { G.msg = `Hint: ${esc(c.hint)}`; G.msgKind = ''; render(); });
+}
+function refreshStatus() {
+  const a = caseAgent(); if (!a || G.step !== 1) return;
+  $('#status').innerHTML = `<span class="dot" style="background:${a.color}"></span><span><b>${esc(a.name)}</b>: ${esc(describe(a))}</span>`;
+}
+$('#speedBtn').addEventListener('click', () => { speed = speed === 1 ? 2 : speed === 2 ? 4 : 1; $('#speedBtn').textContent = `Speed ${speed}×`; });
+
+newCase();
+let last = performance.now(), uiT = 0;
 function frame(now) {
   const dt = Math.min(0.1, (now - last) / 1000); last = now;
   if (running) { let sdt = dt * speed; while (sdt > 1e-6) { const s = Math.min(0.033, sdt); tick(s); sdt -= s; } }
-  draw();
-  uiT += dt; scoreT += dt;
-  if (uiT > 0.25) { uiT = 0; refreshLive(); }
-  if (scoreT > 0.6) { scoreT = 0; renderScore(); }
+  if (!$('#roomView').hidden) draw();
+  uiT += dt; if (uiT > 0.25) { uiT = 0; refreshStatus(); }
   requestAnimationFrame(frame);
 }
 requestAnimationFrame(frame);
