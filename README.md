@@ -14,14 +14,20 @@ The page also has room supports (labels, a checklist, a quiet room, clear walkwa
 
 ## Pages
 
-- **`index.html`: Brain Detective (the game).** A random person in the room gets one hidden difficulty. Watch them next to two people without difficulties, then:
-  1. choose what they find hard (judging space, seeing one side, moving smoothly, staying focused, words, planning, remembering);
-  2. click where that lives in the brain on an interactive brain picture.
+- **`index.html`: In Their Shoes (first person).** Do an everyday job yourself in a 3D view of the shared room while living with one or more simplified challenges:
+  - **Judging space:** things look shifted from where they really are.
+  - **Left-side vision:** the left of your view fades away.
+  - **Unsteady movement:** slow, shaky, delayed controls, and hands that slip.
+  - **Staying focused:** voices and noises pull your gaze away.
+  - **Understanding words:** speech and instructions are partly jumbled.
+  - **Planning steps:** the job's steps arrive in no particular order.
+  - **Remembering:** your goal fades and finished steps aren't ticked off.
 
-  The person to watch does every job as a team with Ada. They share one list of steps and each takes the next step that is ready. When one partner gets stuck (forgets, gets distracted, fumbles, can't find something or gives up), they let go of that step and the other one takes it over, so the job still gets finished. A dotted line links the two partners.
-
-  A correct answer shows the area glowing and labelled, with the clues the person gave. Each step scores 2 points on the first try and 1 on the second.
+  Ada, Ben and Chen go about their own jobs, notice when you struggle (bumping, wrong places, steps out of order, standing lost) and come over to offer help that fits the difficulty. You can accept or say no. Afterwards you can adapt the room (labels, checklist, quiet room, clear walkways, adapted tools, picture instructions, left-side markers) and try again. Each attempt gets an independence score and is compared with your earlier attempts. A replay shows the room from above (what actually happened) next to your own first-person view (what you experienced), with a timeline and a list of events in both versions.
+- **`detective.html`: Brain Detective.** Watch a person with a hidden difficulty, name it, then find where it lives on a brain picture. The person works in a team with Ada, who takes over steps when they get stuck.
 - **`lab.html`: the full lab.** Set every person's difficulties with sliders, add room supports, and read the event log and scoreboard.
+
+Brain Detective matches each difficulty to one brain area:
 
 | Difficulty | Brain area in the game |
 |---|---|
@@ -35,7 +41,7 @@ The page also has room supports (labels, a checklist, a quiet room, clear walkwa
 
 ## Run it
 
-Open `index.html` (the game) or `lab.html` (the full lab) in any modern browser. There is no build step, backend, database or API key. Everything runs locally from rules and dialogue templates. The only network requests are for the Google Fonts, and the page still works without them.
+Open `index.html`, `detective.html` or `lab.html` in any modern browser. Controls for In Their Shoes: W A S D or arrow keys to move, E to use things, R to remind yourself, H to ask for help, Y / N to answer offers. There is no build step, backend, database or API key. Everything runs locally from rules and dialogue templates. The only network requests are for the Google Fonts, and the page still works without them.
 
 ## Disclaimer
 
