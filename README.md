@@ -22,7 +22,7 @@ The page also has room supports (labels, a checklist, a quiet room, clear walkwa
 
   A correct answer shows the area glowing and labelled, with the clues the person gave. Each step scores 2 points on the first try and 1 on the second.
   - **Add things to the room:** a TV, radio, cat, birthday cake, fish tank, flowers or piano. Pick one and click a free spot on the floor, or put the TV, radio, cake, fish tank or flowers on the table or coffee table. People nearby react, and conversations near it turn to it ("Whose birthday is it?"). The TV and radio make noise that distracts people with attention difficulties, and the cat wanders around. Click a thing you added to remove it.
-  - **Click a person to see their brain.** The affected area is marked with a pulsing red symbol. People without difficulties show no marks; the person to watch stays hidden ("?") until you solve the case. After solving, use "Back to the room" to click them.
+  - **Click a person to see their brain.** The affected area is marked with a pulsing red symbol. People without difficulties show no marks. Clicking the person with the dashed ring marks their area straight away, which shows the answer to the case.
 - **`lab.html`: the full lab.** Set every person's difficulties with sliders, add room supports, and read the event log and scoreboard.
 
 | Difficulty | Brain area in the game |

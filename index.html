@@ -122,6 +122,7 @@ canvas#room{display:block;width:100%;min-width:600px;aspect-ratio:960/600;backgr
 .pop-text{padding:14px 18px 18px}
 .pop-text p{margin:0 0 10px;max-width:60ch}
 .pop-note{font-size:14px;color:var(--muted)}
+.pop-spoiler{font:600 11px var(--f-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--hl-line)}
 .brain .mk-ring{fill:none;stroke:#D8372B;stroke-width:3;animation:mkpulse 1.6s ease-out infinite;transform-box:fill-box;transform-origin:center}
 .brain .mk-dot{fill:#D8372B;stroke:#FFFFFF;stroke-width:3}
 .brain .mk-sym{font:700 18px var(--f-display);fill:#FFFFFF}
@@ -168,7 +169,7 @@ canvas#room.placing{cursor:crosshair}
           <div class="add-btns" id="addBtns"></div>
           <button class="btn ghost" type="button" id="clearEl">Clear added things</button>
           <p class="add-hint" id="addHint" aria-live="polite"></p>
-          <p class="add-hint">Tip: click any person to see their brain, with the affected area marked.</p>
+          <p class="add-hint">Tip: click any person to see their brain with the affected area marked. Clicking the person with the dashed ring shows the answer.</p>
         </div>
       </div>
       <div id="brainView" class="brain-stage" hidden></div>
@@ -1784,16 +1785,13 @@ function showBrain(a) {
   const hiddenCase = game.active && !game.solved && a.id === game.caseId;
   const keys = regionKeysFor(a);
   let art, text;
-  if (hiddenCase) {
-    art = brainSVG(null, true).replace(/<\/svg>$/, '<text x="300" y="215" text-anchor="middle" class="mk-q">?</text></svg>');
-    text = `<p>${esc(a.name)}’s difficulty is hidden. Watch what ${esc(a.name)} does, answer the questions, and the affected area will be marked here once the case is solved.</p>`;
-  } else if (!keys.length) {
+  if (!keys.length) {
     art = brainSVG(null, true);
     text = `<p>No areas are marked. In this simulation ${esc(a.name)} has no difficulties, so every part of the brain is working as usual.</p>`;
   } else {
     art = markerSVG(brainSVG(keys[0], true), keys);
     const r = REGIONS[keys[0]], c = CASES[r.imp];
-    text = `<p>The marked area is the <b>${esc(keys.map(k => REGIONS[k].name).join(' and the '))}</b>. ${esc(r.role)}</p><p class="pop-note">${esc(a.name)} has trouble with ${esc((c ? c.label : r.short).toLowerCase())}. ${esc(r.signs)}</p>`;
+    text = `${hiddenCase ? '<p class="pop-spoiler">This shows the answer to the current case.</p>' : ''}<p>The marked area is the <b>${esc(keys.map(k => REGIONS[k].name).join(' and the '))}</b>. ${esc(r.role)}</p><p class="pop-note">${esc(a.name)} has trouble with ${esc((c ? c.label : r.short).toLowerCase())}. ${esc(r.signs)}</p>`;
   }
   $('#popTitle').textContent = `${a.name}’s brain`;
   $('#popArt').innerHTML = art; $('#popText').innerHTML = text;
