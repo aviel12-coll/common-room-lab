@@ -3,13 +3,13 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>In Their Shoes</title>
+<title>Brain Detective</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=JetBrains+Mono:wght@400;600&display=swap">
 <style>
-/* Layout: the first-person view is the stage, with a setup/results panel beside it; the two-pane replay and its event table sit full width below. */
+/* Layout: the room (or the brain) is the stage on the left; one question panel sits beside it and stacks below on narrow screens. */
 :root{
   --bg:#EDF1EF; --surface:#FFFFFF; --surface-2:#F4F7F5; --ink:#16232A; --muted:#566A70; --line:#D2DCD8;
   --accent:#2950B8; --accent-ink:#FFFFFF;
@@ -38,97 +38,90 @@
   --t-spatial:#5AA6E8; --t-field:#8F8BF0; --t-motor:#EE9450; --t-attention:#E0BC3A; --t-language:#EC79AC; --t-planning:#4CC08B; --t-memory:#B38AEB; --t-support:#79AEBB; --t-done:#88A8FF;
   color-scheme:dark;
 }
-
-:root{--hl:#F2A100; --hl-line:#A86400; --hl-soft:rgba(242,161,0,.18)}
-@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--hl:#FFC23D; --hl-line:#FFD883; --hl-soft:rgba(255,194,61,.14)}}
-:root[data-theme="dark"]{--hl:#FFC23D; --hl-line:#FFD883; --hl-soft:rgba(255,194,61,.14)}
+/* Brain detective */
+:root{
+  --brain-hi:#F7DED7; --brain-lo:#DCA79E; --brain-line:#9E665E; --hl:#F2A100; --hl-line:#A86400; --hl-soft:rgba(242,161,0,.20); --scrim:rgba(12,22,26,.58);
+  --lobe-frontal:#E7A397; --lobe-parietal:#EBC195; --lobe-temporal:#DCA3BE; --lobe-occipital:#C7B0DE;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--brain-hi:#D3A49C; --brain-lo:#86584F; --brain-line:#3C2421; --hl:#FFC23D; --hl-line:#FFD883; --hl-soft:rgba(255,194,61,.16); --scrim:rgba(0,0,0,.68)}}
+:root[data-theme="dark"]{--brain-hi:#D3A49C; --brain-lo:#86584F; --brain-line:#3C2421; --hl:#FFC23D; --hl-line:#FFD883; --hl-soft:rgba(255,194,61,.16); --scrim:rgba(0,0,0,.68)}
+.brain{display:block;width:100%;height:auto}
+.brain .part{stroke:var(--brain-line);stroke-width:2}
+.brain .edge{fill:none;stroke:var(--brain-line);stroke-width:2.6}
+.brain .sulc{fill:none;stroke:var(--brain-line);stroke-width:2.2;stroke-linecap:round;opacity:.5}
+.brain .sulc.big{stroke-width:3.4;opacity:.7}
+.brain .lobe{opacity:.38}
+.brain.has-hl .lobe{opacity:.16}
+.brain .hl{fill:var(--hl);opacity:.92}
+.brain .hl.deep{stroke:var(--hl-line);stroke-width:2.5;stroke-dasharray:6 4}
+.brain .arc{fill:none;stroke:var(--hl-line);stroke-width:3.5;stroke-dasharray:1 8;stroke-linecap:round}
+.brain .lead{fill:none;stroke:var(--ink);stroke-width:1.5}
+.brain .pin{fill:var(--ink);stroke:var(--surface);stroke-width:2}
+.brain .lbl{font:700 22px var(--f-display);fill:var(--ink);paint-order:stroke;stroke:var(--surface-2);stroke-width:6px;stroke-linejoin:round}
+.brain .lbl2{font:400 15px var(--f-body);fill:var(--muted);paint-order:stroke;stroke:var(--surface-2);stroke-width:5px}
+.brain .orient{font:600 12px var(--f-mono);letter-spacing:.12em;fill:var(--muted)}
+.brain.full .hl{animation:hlpulse 2.4s ease-in-out infinite}
+@keyframes hlpulse{50%{opacity:.6}}
 *{box-sizing:border-box}
 html{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 body{margin:0}
 [hidden]{display:none!important}
+:root{--miss:#C8463A}
 body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.5}
-.app{max-width:1380px;margin:0 auto;padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));padding-block:20px 36px}
-.top{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px 24px;margin-bottom:16px}
-h1{font-family:var(--f-display);font-weight:700;font-size:clamp(28px,3.4vw,40px);letter-spacing:-0.025em;line-height:1.05;margin:0}
-.lede{margin:6px 0 0;color:var(--muted);max-width:68ch}
-.nav{display:flex;flex-wrap:wrap;gap:4px;padding:4px;border:1px solid var(--line);border-radius:999px;background:var(--surface)}
-.nav a{font:700 13px var(--f-body);color:var(--muted);text-decoration:none;padding:7px 12px;border-radius:999px}
-.nav a[aria-current="page"]{background:var(--ink);color:var(--surface)}
-.nav a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;min-width:0}
-.game{display:grid;grid-template-columns:minmax(0,1fr) 380px;gap:18px;align-items:start}
-@media (max-width:1060px){.game{grid-template-columns:minmax(0,1fr)}}
-.view{overflow:hidden}
-canvas#fp{display:block;width:100%;aspect-ratio:16/10;background:#DCE1DE;touch-action:none;cursor:grab}
-canvas#fp:focus-visible{outline:3px solid var(--accent);outline-offset:-3px}
-.pad{display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding:10px 12px;border-top:1px solid var(--line)}
-.pad .spacer{flex:1 1 auto}
-.pbtn{width:42px;height:38px;border:1px solid var(--line);background:var(--surface-2);color:var(--ink);border-radius:8px;font-size:14px;cursor:pointer;touch-action:none;user-select:none}
-.btn{font:700 13px/1 var(--f-body);border:1px solid var(--line);background:var(--surface-2);color:var(--ink);border-radius:7px;padding:9px 12px;cursor:pointer;white-space:nowrap}
-.btn:hover,.pbtn:hover{border-color:var(--furn-line)}
+.app{max-width:1320px;margin:0 auto;padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));padding-block:20px 36px}
+.top{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px 20px;margin-bottom:14px}
+h1{font-family:var(--f-display);font-weight:700;font-size:clamp(26px,3.2vw,38px);letter-spacing:-0.025em;line-height:1.05;margin:0}
+.top p{margin:4px 0 0;color:var(--muted);max-width:60ch}
+.stats{display:flex;gap:8px}
+.stat{font:600 12px var(--f-mono);letter-spacing:.04em;text-transform:uppercase;color:var(--muted);padding:7px 12px;border-radius:999px;border:1px solid var(--line);background:var(--surface);font-variant-numeric:tabular-nums}
+.stat b{color:var(--ink);font-size:15px;margin-left:4px}
+.game{display:grid;grid-template-columns:minmax(0,1fr) 370px;gap:18px;align-items:start}
+@media (max-width:1000px){.game{grid-template-columns:minmax(0,1fr)}}
+.stage{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden;min-width:0}
+.stage-scroll{overflow-x:auto}
+canvas#room{display:block;width:100%;min-width:600px;aspect-ratio:960/600;background:var(--floor)}
+.stage-bar{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;padding:10px 14px;border-top:1px solid var(--line);font-size:14px}
+.status{flex:1 1 260px;min-width:0;display:flex;align-items:center;gap:8px}
+.dot{display:inline-block;width:12px;height:12px;border-radius:50%;flex:none}
+.brain-stage{padding:24px 16px;background:radial-gradient(circle at 50% 46%, var(--hl-soft), transparent 64%), var(--surface-2)}
+.brain-stage .brain{max-width:860px;margin:0 auto}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:18px;min-width:0}
+.steps{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px}
+.step{font:600 11px/1 var(--f-mono);letter-spacing:.06em;text-transform:uppercase;padding:6px 9px;border-radius:999px;border:1px solid var(--line);color:var(--muted)}
+.step.on{background:var(--ink);color:var(--surface);border-color:var(--ink)}
+.step.done{color:var(--hl-line);border-color:var(--hl-line)}
+.panel h2{font:700 22px/1.15 var(--f-display);letter-spacing:-0.01em;margin:0 0 8px;text-wrap:balance}
+.panel p{margin:0 0 12px}
+.eyebrow{font:600 11px var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--hl-line);margin:0 0 4px}
+.panel h3{font:600 11px var(--f-mono);letter-spacing:.07em;text-transform:uppercase;color:var(--muted);margin:16px 0 6px}
+.panel ul{margin:0;padding-left:18px;font-size:14px}
+.choices{display:flex;flex-direction:column;gap:6px}
+.choice{text-align:left;padding:9px 12px;border:1px solid var(--line);background:var(--surface-2);border-radius:8px;cursor:pointer;color:var(--ink);font:inherit}
+.choice b{display:block;font-size:14px}
+.choice small{display:block;color:var(--muted);font-size:12px;line-height:1.35}
+.choice:hover:not([disabled]){border-color:var(--hl-line)}
+.choice[disabled]{cursor:default}
+.choice.wrong{opacity:.45}
+.choice.wrong b{text-decoration:line-through}
+.msg{font-size:13px;padding:9px 11px;border-radius:8px;background:var(--surface-2);border:1px solid var(--line);margin:0 0 12px}
+.msg.bad{border-color:var(--miss)}
+.msg.good{border-color:var(--hl-line);background:var(--hl-soft)}
+.btn{font:700 13px/1 var(--f-body);border:1px solid var(--line);background:var(--surface-2);color:var(--ink);border-radius:6px;padding:9px 12px;cursor:pointer;white-space:nowrap}
+.btn:hover{border-color:var(--furn-line)}
 .btn.primary{background:var(--accent);color:var(--accent-ink);border-color:transparent}
 .btn.ghost{background:transparent}
-.btn:focus-visible,.pbtn:focus-visible,select:focus-visible,.opt input:focus-visible,.tlink:focus-visible,.mark:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-.panel{padding:18px}
-.panel h2{font:700 23px/1.15 var(--f-display);letter-spacing:-0.01em;margin:4px 0 8px;text-wrap:balance}
-.panel h3{font:600 11px var(--f-mono);letter-spacing:.07em;text-transform:uppercase;color:var(--muted);margin:18px 0 8px}
-.panel p{margin:0 0 10px}
-.eyebrow{font:600 11px var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--accent);margin:0}
-.hint{font-size:13px;color:var(--muted);margin:0 0 10px}
-.muted{color:var(--muted)}
-.lbl{display:block;font-weight:700;font-size:13px;margin:12px 0 4px}
-select{font:600 14px var(--f-body);background:var(--surface-2);color:var(--ink);border:1px solid var(--line);border-radius:7px;padding:7px 9px;max-width:100%}
-.opts{display:flex;flex-direction:column;gap:6px}
-.opt{display:grid;grid-template-columns:18px minmax(0,1fr);gap:1px 8px;align-items:start;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--surface-2);cursor:pointer}
-.opt input{accent-color:var(--accent);width:16px;height:16px;margin:2px 0 0}
-.opt b{font-size:14px}
-.opt span{grid-column:2;font-size:12px;color:var(--muted);line-height:1.35}
-.opt:has(input:checked){border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
-.seg{display:inline-flex;border:1px solid var(--line);border-radius:7px;overflow:hidden;margin-top:10px}
-.seg button{font:600 12px/1 var(--f-mono);background:var(--surface-2);color:var(--muted);border:0;border-right:1px solid var(--line);padding:9px 11px;cursor:pointer}
-.seg button:last-child{border-right:0}
-.seg button[aria-pressed="true"]{background:var(--ink);color:var(--surface)}
+.btn:focus-visible,.choice:focus-visible,canvas:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .row{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
-.chips{display:flex;flex-wrap:wrap;gap:6px}
-.chip-s{font:700 12px var(--f-body);padding:5px 9px;border-radius:999px;border:1px solid var(--line);background:var(--surface-2)}
-.offer{border:1px solid var(--hl-line);background:var(--hl-soft);border-radius:10px;padding:12px;margin-top:12px}
-.offer p{margin:6px 0 0;font-size:14px}
-.keys{margin:0;padding-left:18px;font-size:13px}
-.keys li{margin-bottom:4px}
-kbd{font:600 11px var(--f-mono);border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;padding:1px 5px;background:var(--surface-2);margin-right:2px}
-.stat-list{list-style:none;margin:8px 0 0;padding:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px 14px;font-size:13px}
-.stat-list li{display:flex;justify-content:space-between;border-bottom:1px dashed var(--line);padding:3px 0}
-.stat-list b{font-variant-numeric:tabular-nums}
-.table-wrap{overflow-x:auto}
-table{border-collapse:collapse;width:100%;font-size:13px}
-th{font:600 10px/1.2 var(--f-mono);letter-spacing:.05em;text-transform:uppercase;color:var(--muted);text-align:left;padding:8px;border-bottom:1px solid var(--line);white-space:nowrap}
-td{padding:8px;border-bottom:1px solid var(--line);vertical-align:top}
-.cmp td{white-space:nowrap;font-variant-numeric:tabular-nums}
-.cmp td.wrap{white-space:normal;min-width:120px}
-.bar{display:inline-block;width:44px;height:6px;border-radius:3px;background:var(--line);margin-right:6px;vertical-align:middle;overflow:hidden}
-.bar i{display:block;height:100%;background:var(--accent)}
-.replay{margin-top:20px}
-.card-h{display:flex;flex-wrap:wrap;align-items:flex-start;justify-content:space-between;gap:10px 16px;padding:14px 16px;border-bottom:1px solid var(--line)}
-.card-h h2{font:700 19px var(--f-display);margin:0}
-.card-h .hint{margin:4px 0 0}
-.rp-panes{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;padding:14px 16px 0}
-@media (max-width:820px){.rp-panes{grid-template-columns:minmax(0,1fr)}}
-.rp-panes figure{margin:0;min-width:0}
-.rp-panes figcaption{font:600 11px var(--f-mono);letter-spacing:.07em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
-canvas#room,canvas#fpReplay{display:block;width:100%;aspect-ratio:16/10;border-radius:8px;border:1px solid var(--line);background:var(--floor)}
-.rp-ctrl{display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;padding:14px 16px}
-.rp-ctrl .seg{margin-top:0}
-.rp-track{position:relative;flex:1 1 260px;min-width:0;padding-top:14px}
-.rp-track input{width:100%;accent-color:var(--accent)}
-.rp-marks{position:absolute;left:8px;right:8px;top:0;height:12px}
-.mark{position:absolute;top:0;width:8px;height:12px;margin-left:-4px;border-radius:2px;border:0;padding:0;cursor:pointer}
-.clock{font:600 13px var(--f-mono);font-variant-numeric:tabular-nums;color:var(--muted)}
-.events td:first-child{white-space:nowrap}
-.events tr.now td{background:var(--hl-soft)}
-.tlink{font:600 12px var(--f-mono);background:none;border:0;color:var(--accent);cursor:pointer;padding:0;text-decoration:underline}
-.tag{display:inline-block;font:600 10px/1 var(--f-mono);letter-spacing:.05em;text-transform:uppercase;padding:3px 5px 2px;border-radius:3px;margin-right:7px;color:var(--surface);vertical-align:1px}
 .foot{margin-top:18px;font-size:13px;color:var(--muted)}
-.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.foot a{color:var(--accent)}
+.muted{color:var(--muted)}
+.picker .part{fill:transparent;cursor:pointer;transition:fill-opacity .15s}
+.picker .part:hover,.picker .part:focus-visible{fill:var(--hl);fill-opacity:.5;outline:none}
+.picker .part.miss{fill:var(--miss);fill-opacity:.32}
+.picker .part:not(.deep){stroke-opacity:.35;stroke-width:1.3}
+.picker .part.deep{stroke:var(--brain-line);stroke-width:2.2;stroke-dasharray:5 4}
+.picker .part.deep:not(:hover):not(.miss){fill:var(--brain-hi);fill-opacity:.55}
+@media (prefers-reduced-motion: reduce){.brain.full .hl{animation:none}.picker .part{transition:none}}
 </style>
 </head>
 <body>
@@ -136,43 +129,25 @@ canvas#room,canvas#fpReplay{display:block;width:100%;aspect-ratio:16/10;border-r
 <div class="app">
   <header class="top">
     <div>
-      <h1>In Their Shoes</h1>
-      <p class="lede">Do an everyday job in a shared room while living with a simplified perceptual, motor or cognitive challenge. Others in the room notice and offer help. Then adapt the room, try again, and replay what really happened next to what you experienced.</p>
+      <h1>Brain Detective</h1>
+      <p>Someone in the room has a hidden difficulty and shares every job with a partner. Watch them, name the difficulty, then find where it lives in the brain.</p>
     </div>
-    <nav class="nav" aria-label="Pages"><a aria-current="page" href="index.html">In Their Shoes</a><a href="detective.html">Brain Detective</a><a href="lab.html">Lab</a></nav>
+    <div class="stats"><span class="stat">Case<b id="sRound">1</b></span><span class="stat">Score<b id="sScore">0</b></span></div>
   </header>
   <div class="game">
-    <section class="card view" aria-label="Your view">
-      <canvas id="fp" tabindex="0" aria-label="First-person view of the shared room. W A S D or arrow keys to move, E to use what is in front of you."></canvas>
-      <div class="pad" aria-label="On-screen controls">
-        <button class="pbtn" type="button" data-hold="left" aria-label="Turn left">◀</button>
-        <button class="pbtn" type="button" data-hold="fwd" aria-label="Walk forward">▲</button>
-        <button class="pbtn" type="button" data-hold="back" aria-label="Walk back">▼</button>
-        <button class="pbtn" type="button" data-hold="right" aria-label="Turn right">▶</button>
-        <span class="spacer"></span>
-        <button class="btn" type="button" data-act="use">Use (E)</button>
-        <button class="btn" type="button" data-act="remind">Remind me (R)</button>
-        <button class="btn" type="button" data-act="help">Ask for help (H)</button>
+    <section class="stage" aria-label="Stage">
+      <div id="roomView">
+        <div class="stage-scroll"><canvas id="room" aria-label="Top-down view of the room. The person with the dashed ring is the one to watch."></canvas></div>
+        <div class="stage-bar">
+          <span class="status" id="status" aria-live="off"></span>
+          <button class="btn" type="button" id="speedBtn">Speed 1×</button>
+        </div>
       </div>
+      <div id="brainView" class="brain-stage" hidden></div>
     </section>
-    <aside class="card panel" id="panel" aria-live="polite"></aside>
+    <aside class="panel" id="panel" aria-live="polite"></aside>
   </div>
-  <section class="card replay" id="replay" hidden>
-    <div class="card-h"><div><h2>Replay</h2><p class="hint" id="rSummary"></p></div><select id="rAttempt" aria-label="Choose an attempt"></select></div>
-    <div class="rp-panes">
-      <figure><figcaption>What actually happened</figcaption><canvas id="room" aria-label="Top-down view of the room during the replay"></canvas></figure>
-      <figure><figcaption>What you experienced</figcaption><canvas id="fpReplay" aria-label="Your first-person view during the replay"></canvas></figure>
-    </div>
-    <div class="rp-ctrl">
-      <button class="btn primary" id="rPlay" type="button">Play</button>
-      <div class="seg" role="group" aria-label="Replay speed"><button type="button" data-rspeed="0.5" aria-pressed="false">0.5×</button><button type="button" data-rspeed="1" aria-pressed="true">1×</button><button type="button" data-rspeed="2" aria-pressed="false">2×</button><button type="button" data-rspeed="4" aria-pressed="false">4×</button></div>
-      <div class="rp-track"><div class="rp-marks" id="rMarks"></div><input type="range" id="rTime" min="0" max="1" step="0.05" value="0" aria-label="Replay time"></div>
-      <span class="clock" id="rClock">00:00</span>
-    </div>
-    <div class="table-wrap"><table class="events"><thead><tr><th>Time</th><th>What actually happened</th><th>What you experienced</th></tr></thead><tbody id="rEvents"></tbody></table></div>
-  </section>
-  <p class="foot">Everything runs in your browser from simple rules and dialogue templates. These are simplified teaching models, not clinical descriptions of any condition.</p>
-  <div id="sr" class="sr-only" aria-live="polite"></div>
+  <p class="foot">Want to set the difficulties yourself and compare several people? <a href="lab.html">Open the full lab</a>. These are simplified teaching models, not clinical descriptions.</p>
 </div>
 
 <script>
@@ -473,7 +448,6 @@ function say(a, raw, vars = {}) {
   SPEECH.push({ x: a.x, y: a.y, t: simT, by: a.id, name: a.name });
   if (r.issues) a.stats.ev.language++;
   log(a, 'say', r.text, { lang: r.issues > 0 });
-  onSay(a, r.text);
 }
 function nameFor(a, b) {
   if (rnd() < effMemory(a) * 0.55) { ev(a, 'memory', `couldn't recall ${b.name}'s name`); return pick(['uh… you', 'um… sorry, what was your name']); }
@@ -963,7 +937,7 @@ function update(a, dt) {
 }
 function tick(dt) {
   simT += dt;
-  for (const a of agents) { if (a.fpHelp) helperUpdate(a, dt); else update(a, dt); }
+  for (const a of agents) update(a, dt);
   // keep people from overlapping
   for (let i = 0; i < agents.length; i++) for (let j = i + 1; j < agents.length; j++) {
     const a = agents[i], b = agents[j], d = dist(a, b);
@@ -992,7 +966,7 @@ function tick(dt) {
 }
 
 // ---------- Rendering ----------
-const canvas = $('#room'); let ctx = canvas.getContext('2d');
+const canvas = $('#room'), ctx = canvas.getContext('2d');
 let scale = 1, dpr = 1, ts = 1, T = {};
 const TOKENS = ['floor', 'floor-grid', 'wall', 'furn', 'furn-line', 'rug', 'sofa', 'board', 'head', 'bubble', 'bubble-ink', 'ink', 'muted', 'surface', 'accent', 't-spatial', 't-field', 't-motor', 't-attention', 't-language', 't-planning', 't-memory', 't-support'];
 function readTheme() { const cs = getComputedStyle(document.documentElement); for (const k of TOKENS) T[k] = cs.getPropertyValue('--' + k).trim(); }
@@ -1296,8 +1270,7 @@ function draw() {
 }
 
 
-
-// ---------- In Their Shoes: first-person experience ----------
+// ---------- Simple game ----------
 function renderLogEntry() {}
 function addAgent(spec) {
   const used = new Set(agents.map(a => a.color));
@@ -1310,919 +1283,268 @@ function addAgent(spec) {
   agents.push(a);
   return a;
 }
-
-const EYE = 128, FOV = 1.15, FOG = '#DCE2DF', ZERO = { x: 0, y: 0 };
-const DISPLAY = '"Bricolage Grotesque", system-ui, sans-serif';
-const STRENGTH = { mild: 0.4, moderate: 0.7, strong: 0.95 };
-const CH = [
-  { k: 'spatial', name: 'Judging space', desc: 'Things look shifted from where they really are, so you misjudge distances.' },
-  { k: 'field', name: 'Left-side vision', desc: 'The left side of what you see fades away.' },
-  { k: 'motor', name: 'Unsteady movement', desc: 'Slow, shaky, delayed movement. Fiddly actions can slip.' },
-  { k: 'attention', name: 'Staying focused', desc: 'Voices and noises pull your gaze away from the job.' },
-  { k: 'language', name: 'Understanding words', desc: 'Some words in speech and instructions come out jumbled.' },
-  { k: 'planning', name: 'Planning steps', desc: 'The job’s steps arrive in no particular order.' },
-  { k: 'memory', name: 'Remembering', desc: 'Your goal fades, and you lose track of what is done.' }
-];
-const SUP = [
-  { k: 'labels', name: 'Labels and landmarks', desc: 'Big signs on every station, readable from anywhere. Things look much closer to where they really are.' },
-  { k: 'checklist', name: 'Step-by-step checklist', desc: 'A numbered list that stays on screen and ticks off what you finish.' },
-  { k: 'quiet', name: 'Quiet room', desc: '70% fewer noises and voices pulling you away.' },
-  { k: 'clear', name: 'Clear walkways', desc: 'Takes the laundry basket, box and bag off the floor.' },
-  { k: 'tools', name: 'Adapted tools', desc: 'Easy-grip handles: steadier hands, fewer slips, quicker actions.' },
-  { k: 'pictures', name: 'Picture instructions', desc: 'Pictures next to the words in your goal and in what people say.' },
-  { k: 'leftMarkers', name: 'Left-side markers', desc: 'Bright tape and arrows that draw your eyes to the left.' }
-];
-const SUGGEST = { spatial: ['labels', 'clear'], field: ['leftMarkers', 'labels'], motor: ['tools', 'clear'], attention: ['quiet', 'checklist'], language: ['pictures'], planning: ['checklist'], memory: ['checklist', 'labels'] };
-const KIND = { spatial: 'Space', field: 'Left side', motor: 'Movement', attention: 'Attention', language: 'Words', planning: 'Planning', memory: 'Memory', support: 'Help', done: 'Progress', general: 'Setback' };
-const JOBS = ['tea', 'setTable', 'plant', 'book', 'note', 'mail'];
-const ITEM = {
-  cupboard: { x: 70, y: 22, h: 112, parent: 'counter', ax: 'x', lh: 190 },
-  sink: { x: 180, y: 46, h: 76, parent: 'counter', ax: 'x', lh: 120 },
-  kettle: { x: 295, y: 48, h: 76, parent: 'counter', ax: 'x', lh: 120 },
-  board: { x: 630, y: 22, h: 0, parent: 'board', ax: 'x', lh: 210 },
-  shelf: { x: 921, y: 220, h: 0, parent: 'shelf', ax: 'y', lh: 200 },
-  table: { x: 495, y: 300, h: 66, parent: 'table', ax: 'x', lh: 105 },
-  sofa: { x: 145, y: 545, h: 0, parent: 'sofa', ax: 'x', lh: 105 },
-  plant: { x: 900, y: 528, h: 44, parent: 'plant', ax: 'y', lh: 140 },
-  door: { x: 12, y: 300, h: 0, parent: null, ax: 'y', lh: 215 }
-};
-const FP_WALLS = [
-  { x: 0, y: 0, w: 780, h: 16, kind: 'wall' }, { x: 780, y: 0, w: 110, h: 16, kind: 'window' }, { x: 890, y: 0, w: 70, h: 16, kind: 'wall' },
-  { x: 0, y: 584, w: 960, h: 16, kind: 'wall' }, { x: 944, y: 0, w: 16, h: 600, kind: 'wall' },
-  { x: 0, y: 0, w: 16, h: 260, kind: 'wall' }, { x: 0, y: 340, w: 16, h: 260, kind: 'wall' }, { x: 0, y: 260, w: 16, h: 80, kind: 'door' }
-];
-const FPS = {
-  wall: { h: 230, col: '#E4E8E6', tex: 'wall' }, window: { h: 230, col: '#E4E8E6', tex: 'window' }, door: { h: 230, col: '#9C6B45', tex: 'door' },
-  counter: { h: 76, col: '#F1F3F2', top: '#C8D0D3', tex: 'counter' }, board: { h: 200, base: 90, col: '#FBFCFC', tex: 'board' },
-  shelf: { h: 185, col: '#8F6A48', tex: 'books' }, table: { h: 66, col: '#B98B5E', top: '#D3A877' }, chair: { h: 46, col: '#7E8C96', top: '#93A2AC' },
-  sofa: { h: 70, col: '#7F9AAE', top: '#97B1C4' }, coffee: { h: 40, col: '#A57E58', top: '#C39A6E' }, plant: { h: 44, col: '#B5815A', top: '#8E6243' },
-  basket: { h: 42, col: '#C9A46A', top: '#A9844C' }, box: { h: 38, col: '#C7A27C', top: '#D8B68F' }, bag: { h: 32, col: '#6E7FA8', top: '#8796BD' }
-};
-const PICS = [[/\b(cup|tea|mug)/, '☕'], [/(kettle|boil)/, '🔥'], [/(water|sink|fill)/, '💧'], [/plant/, '🌿'], [/(book|shelf)/, '📚'], [/(marker|write|list|whiteboard)/, '✏️'], [/(plate|cutlery|table)/, '🍽️'], [/(mail|letter|door)/, '✉️'], [/(left)/, '⬅️'], [/(follow|show|way|over here)/, '👉'], [/(help|hand)/, '🤝']];
-const OFFERS = {
-  spatial: ['You keep missing the {st}. Want me to show you where it is?'],
-  field: ['The {st} is over on your left. Shall I point it out?'],
-  motor: ['That looks fiddly. Want me to give you a hand with it?'],
-  attention: ["It's noisy in here. Want me to walk you to the {st}?"],
-  language: ['Need a hand? I can show you instead of telling you.'],
-  planning: ['I think you need to {verb} next. Want me to talk you through it?'],
-  memory: ['You look a bit lost. Want a reminder of what you were doing?'],
-  general: ['Need any help?']
-};
-const WHY = { spatial: 'bumping into things and missing places', field: 'missing things on your left', motor: 'struggling with your hands', attention: 'getting pulled off track', language: 'looking unsure after people spoke', planning: 'trying steps in the wrong order', memory: 'standing still, looking lost', general: 'taking a while' };
-const SYL = ['ba', 'lo', 'mi', 'tre', 'su', 'ka', 'pon', 'dree', 'fi', 'gu', 'zel', 'nok'];
-const CARRY_RUN = { flags: new Set(['cup']) };
-
-const cfg = { job: 'tea', strength: 'moderate', ch: new Set(['memory']), sup: new Set() };
-let mode = 'setup', attempt = null, P = null, AVsetup = null, paused = false;
-const attempts = [];
-
-function mulberry(a) { return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
-function hashStr(s) { let h = 2166136261; for (const c of s) h = Math.imul(h ^ c.charCodeAt(0), 16777619); return h >>> 0; }
-const sev = k => attempt && !attempt.ended ? attempt.AV.s[k] : 0;
-const sup = k => !!attempt && attempt.cfg.sup.has(k);
-const NAMESET = new Set(['ada', 'ben', 'chen']);
-function garbleText(text, L, seed) {
-  if (!L) return text;
-  return text.split(' ').map(w => {
-    const m = w.match(/^([^A-Za-z']*)([A-Za-z']+)(.*)$/); if (!m) return w;
-    const core = m[2], low = core.toLowerCase();
-    if (low.length <= 3 || FUNC.has(low) || NAMESET.has(low)) return w;
-    const h = hashStr(low + seed); if ((h % 100) >= L * 60) return w;
-    let out = SYL[h % SYL.length] + SYL[(h >>> 4) % SYL.length]; if (low.length > 6) out += SYL[(h >>> 8) % SYL.length];
-    if (core[0] !== core[0].toLowerCase()) out = cap(out);
-    return m[1] + out + m[3];
-  }).join(' ');
-}
-function iconsFor(text) { const low = text.toLowerCase(), out = []; for (const [re, ic] of PICS) if (re.test(low) && !out.includes(ic)) out.push(ic); return out.slice(0, 3).join(' '); }
-function hear(text) {
-  const L = sev('language') * (sup('pictures') ? 0.6 : 1);
-  let t = garbleText(text, L, attempt ? attempt.seed : 0);
-  if (sup('pictures')) { const ic = iconsFor(text); if (ic) t += '  ' + ic; }
-  return t;
-}
-
-// ---------- Attempt setup ----------
-function makeAV(c, seed) {
-  const s = {}; for (const ch of CH) s[ch.k] = c.ch.has(ch.k) ? STRENGTH[c.strength] : 0;
-  const lab = c.sup.has('labels'), mag = s.spatial * 50 * (lab ? 0.4 : 1), rng = mulberry(seed);
-  const off = {}, stOff = {};
-  if (mag) for (const o of OBS) { const a = rng() * 6.283, r = mag * 0.45 * (0.5 + rng() * 0.5); off[o.id] = { x: Math.cos(a) * r, y: Math.sin(a) * r }; }
-  for (const k in ITEM) {
-    const I = ITEM[k], po = (I.parent && off[I.parent]) || ZERO, e = mag ? (rng() < 0.5 ? -1 : 1) * mag * (0.6 + rng() * 0.6) : 0;
-    stOff[k] = { x: po.x + (I.ax === 'x' ? e : 0), y: po.y + (I.ax === 'y' ? e : 0) };
+function describe(a) {
+  const step = a.run && a.run.plan[0], st = step && STATIONS[step.st];
+  switch (a.state) {
+    case 'idle': return 'Deciding what to do next.';
+    case 'thinking': return step ? `Working out the next step: ${step.verb}.` : 'Thinking.';
+    case 'walking':
+      if (a.purpose === 'help') return `Showing ${a.helpFor ? a.helpFor.name : 'someone'} where the ${a.helpSt.label} is.`;
+      if (!st) return 'Walking.';
+      return `Heading to the ${st.label} to ${step.verb}.` + (!hidden(a) && a.perceived && dist(a.perceived, st) > 28 ? ' They are aiming at the wrong spot.' : '');
+    case 'searching': return `Can't see the ${st ? st.label : 'next place'}. Turning right to look for it.`;
+    case 'waiting': return `Waiting for the ${a.trueT.label} to be free.`;
+    case 'acting': return `${cap(step.verb)} · ${Math.round(clamp(1 - a.timer / a.actDur, 0, 1) * 100)}%`;
+    case 'confused': return 'Has lost track of what they were doing.';
+    case 'distracted': return `Distracted by ${a.distractPt.label}.`;
+    case 'talking': return `Talking with ${a.convoWith ? a.convoWith.name : 'someone'}.`;
+    case 'bumped': return `Recovering after bumping into the ${a.bumpObj}.`;
+    case 'teamwait': return 'Waiting for the next step of the team job to be ready.';
   }
-  const rects = FP_WALLS.map(w => ({ x0: w.x, y0: w.y, x1: w.x + w.w, y1: w.y + w.h, s: FPS[w.kind], wall: true, id: w.kind }));
-  for (const o of OBS) { const d = off[o.id] || ZERO; rects.push({ x0: o.x + d.x, y0: o.y + d.y, x1: o.x + o.w + d.x, y1: o.y + o.h + d.y, s: FPS[o.id] || FPS.chair, id: o.id, label: o.label }); }
-  return { s, F: s.field, sup: { labels: lab, leftMarkers: c.sup.has('leftMarkers') }, off, stOff, rects, obs: OBS.map(o => ({ ...o })) };
+  return '';
 }
-function setupRoom(clear) {
-  supports.clear = clear; rebuildObs();
-  agents = []; convos = []; SPEECH = []; LOG = []; pairCD = {}; simT = 0; selId = 0;
+// ---------- Brain detective ----------
+const REGIONS = {
+  parietal: { name: 'Parietal lobe', imp: 'spatial', short: 'Sense of space and distance',
+    role: 'Builds your sense of space: where objects are, how far away they are, and where your body is among them.',
+    signs: 'Walks confidently to the wrong spot, then has to look again. Cuts corners and bumps into furniture.',
+    note: 'Problems judging space most often come from the right parietal lobe.', anchor: [404, 112], lbl: [440, -14, 'start'] },
+  occipital: { name: 'Occipital lobe', imp: 'field', short: 'Vision, each half of the view',
+    role: 'The visual cortex at the back of the head. It turns signals from the eyes into what you see. Each side handles the opposite half of the view.',
+    signs: 'Misses things on their left, then turns to the right to search for them.',
+    note: 'Damage to the right visual cortex can blank out the left half of what you see. A similar left-side blind spot can also come from the right parietal lobe, which is called neglect.', anchor: [516, 232], lbl: [614, 40, 'end'] },
+  cerebellum: { name: 'Cerebellum', imp: 'motor', short: 'Smooth, steady movement',
+    role: 'The “little brain” at the back and bottom. It coordinates movement and balance, smoothing out each step and hand action.',
+    signs: 'Walks slowly with a wobble, takes longer over hand jobs, and fumbles or drops things.',
+    note: 'The motor cortex, a strip just in front of the central groove, starts movements. The cerebellum keeps them smooth and accurate.', anchor: [462, 362], lbl: [614, 436, 'end'] },
+  thalamus: { name: 'Thalamus', imp: 'attention', deep: true, short: 'Filters what grabs your focus',
+    role: 'A relay hub deep in the middle of the brain. It filters incoming sights and sounds so you can stay focused on one thing.',
+    signs: 'Drifts off mid-task toward voices or things in the room, and sometimes doesn’t notice being spoken to.',
+    note: 'Attention also depends on networks in the frontal and parietal lobes. The thalamus is the gate that decides what gets through to them.', anchor: [318, 205], lbl: [300, -24, 'middle'] },
+  language: { name: 'Broca’s and Wernicke’s areas', imp: 'language', short: 'Finding and understanding words',
+    role: 'Broca’s area, near the front, helps you produce words and sentences. Wernicke’s area, further back, helps you understand them. A bundle of fibres links the two.',
+    signs: 'Pauses to find words, swaps in related words, drops small words, and misunderstands what others say.',
+    note: 'For most people both areas are on the left side of the brain.', anchor: [210, 236], lbl: [-4, 404, 'start'], anchor2: [386, 266], lbl2: [330, 440, 'middle'] },
+  prefrontal: { name: 'Prefrontal cortex', imp: 'planning', short: 'Planning and step order',
+    role: 'The front of the brain, behind the forehead. It plans, orders and checks multi-step actions, like knowing to boil the water before pouring the tea.',
+    signs: 'Does steps in the wrong order or skips them, finds out when something fails, then backtracks.',
+    note: 'It is the last part of the brain to finish developing, in a person’s mid-twenties.', anchor: [150, 150], lbl: [6, -14, 'start'] },
+  hippocampus: { name: 'Hippocampus', imp: 'memory', deep: true, short: 'New memories, keeping track',
+    role: 'A curved structure tucked inside the temporal lobe. It forms new memories and holds on to what you were in the middle of doing.',
+    signs: 'Stops halfway and forgets why, repeats steps already done, and forgets people’s names.',
+    note: 'There is one on each side of the brain. Its curled shape gave it its name, from the Greek for seahorse.', anchor: [266, 314], lbl: [40, 440, 'start'] }
+};
+const BR = {
+  cer: 'M70,250 C52,190 80,118 148,78 C214,40 304,28 378,44 C452,60 516,104 543,166 C562,210 556,262 530,292 C512,312 486,322 456,320 C430,318 410,306 388,300 C360,296 340,312 318,330 C296,348 262,354 232,346 C204,338 186,318 170,300 C150,296 128,300 108,292 C86,284 74,270 70,250 Z',
+  cbl: 'M396,304 C424,298 472,310 502,326 C528,340 526,372 500,386 C470,400 424,398 398,382 C374,368 370,328 396,304 Z',
+  stem: 'M346,314 C360,336 366,372 362,418 L332,418 C332,382 326,350 316,330 Z',
+  lobes: {
+    frontal: 'M-10,-10 L332,-10 L314,90 L290,168 L284,242 L176,266 L-10,310Z',
+    parietal: 'M332,-10 L480,-10 L470,118 L482,252 L352,252 L284,242 L290,168 L314,90Z',
+    occipital: 'M480,-10 L640,-10 L640,440 L440,440 L482,252 L470,118Z',
+    temporal: 'M-10,310 L176,266 L284,242 L352,252 L482,252 L440,440 L-10,440Z'
+  },
+  thal: 'M284,205 C284,190 300,182 320,182 C342,182 354,194 352,208 C350,222 334,228 316,227 C296,226 284,218 284,205Z',
+  hippo: 'M222,314 C244,300 282,298 308,306 C322,311 324,324 310,328 C294,324 276,320 262,324 C246,328 228,328 222,314Z',
+  sylvian: 'M172,266 C226,254 290,244 352,252 C382,256 402,246 420,230',
+  sulci: [
+    'M332,40 C320,88 302,128 290,168 C282,194 280,216 284,242',
+    'M300,38 C288,84 270,124 260,166 C254,190 252,210 254,236',
+    'M364,46 C352,92 336,134 326,172 C320,196 320,220 324,246',
+    'M118,112 C160,96 210,88 262,94', 'M96,162 C140,150 190,146 240,154', 'M90,214 C128,206 170,206 214,214',
+    'M150,120 C160,140 158,160 150,178', 'M202,160 C212,178 212,196 206,212', 'M110,250 C124,236 144,232 160,242',
+    'M190,296 C246,284 310,276 372,282 C400,284 420,276 440,268', 'M214,322 C260,314 300,306 340,302',
+    'M352,180 C390,160 430,150 470,152', 'M402,88 C422,110 426,130 420,150', 'M478,70 C470,90 466,104 470,118',
+    'M482,150 C502,170 514,196 516,224', 'M470,232 C490,250 500,272 498,294', 'M410,200 C430,214 440,232 436,250'
+  ],
+  folia: [0, 1, 2, 3, 4, 5, 6].map(i => `M372,${316 + i * 12} C420,${304 + i * 12} 476,${316 + i * 12} 532,${336 + i * 12}`)
+};
+let svgN = 0;
+function brainSVG(key, full) {
+  const p = 'bv' + (svgN++), r = key ? REGIONS[key] : null, glow = full ? ` filter="url(#${p}f)"` : '';
+  const g = [`<svg class="brain ${full ? 'full' : 'thumb'}${r ? ' has-hl' : ''}" viewBox="${full ? '-20 -50 660 530' : '44 24 528 400'}" role="img" aria-label="${r ? esc(r.name) + ' highlighted on a side view of the brain' : 'Side view of the brain'}">`,
+    `<defs><radialGradient id="${p}g" cx="0.38" cy="0.3" r="0.8"><stop offset="0" style="stop-color:var(--brain-hi)"/><stop offset="1" style="stop-color:var(--brain-lo)"/></radialGradient>`,
+    `<clipPath id="${p}c"><path d="${BR.cer}"/></clipPath><clipPath id="${p}k"><path d="${BR.cbl}"/></clipPath>`,
+    `<filter id="${p}f" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur in="SourceGraphic" stdDeviation="7" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>`,
+    `<path d="${BR.stem}" fill="url(#${p}g)" class="part"/>`,
+    `<path d="${BR.cbl}" fill="url(#${p}g)" class="part"/>`];
+  if (key === 'cerebellum') g.push(`<path d="${BR.cbl}" class="hl"${glow}/>`);
+  g.push(`<g clip-path="url(#${p}k)">${BR.folia.map(d => `<path d="${d}" class="sulc"/>`).join('')}</g>`);
+  g.push(`<path d="${BR.cer}" fill="url(#${p}g)"/><g clip-path="url(#${p}c)">`);
+  for (const k in BR.lobes) g.push(`<path d="${BR.lobes[k]}" class="lobe" style="fill:var(--lobe-${k})"/>`);
+  if (key === 'prefrontal') g.push(`<path d="M-10,-10 L262,-10 L248,120 L238,256 L176,266 L-10,310Z" class="hl"${glow}/>`);
+  if (key === 'parietal' || key === 'occipital') g.push(`<path d="${BR.lobes[key]}" class="hl"${glow}/>`);
+  if (key === 'language') g.push(`<ellipse cx="210" cy="236" rx="36" ry="21" transform="rotate(-12 210 236)" class="hl"${glow}/><ellipse cx="386" cy="266" rx="40" ry="24" transform="rotate(-8 386 266)" class="hl"${glow}/>`);
+  g.push(BR.sulci.map(d => `<path d="${d}" class="sulc"/>`).join(''), `<path d="${BR.sylvian}" class="sulc big"/>`);
+  g.push(`<ellipse cx="250" cy="100" rx="170" ry="46" fill="#FFFFFF" opacity="0.12"/></g><path d="${BR.cer}" class="edge"/>`);
+  if (key === 'language') g.push(`<path d="M226,224 C270,196 344,200 380,246" class="arc"/>`);
+  if (key === 'thalamus') g.push(`<path d="${BR.thal}" class="hl deep"${glow}/>`);
+  if (key === 'hippocampus') g.push(`<path d="${BR.hippo}" class="hl deep"${glow}/>`);
+  if (full) {
+    g.push('<text x="22" y="300" class="orient" text-anchor="middle">FRONT</text><text x="590" y="300" class="orient" text-anchor="middle">BACK</text>');
+    const lab = (a, l, t1, t2) => {
+      const top = l[1] < 200, ex = l[2] === 'start' ? l[0] + 30 : l[2] === 'end' ? l[0] - 30 : l[0];
+      const ey = top ? l[1] + (t2 ? 30 : 10) : l[1] - 26;
+      return `<path d="M${a[0]},${a[1]} L${ex},${ey}" class="lead"/><circle cx="${a[0]}" cy="${a[1]}" r="5.5" class="pin"/>` +
+        `<text x="${l[0]}" y="${l[1]}" text-anchor="${l[2]}" class="lbl">${t1}</text>` + (t2 ? `<text x="${l[0]}" y="${l[1] + 20}" text-anchor="${l[2]}" class="lbl2">${t2}</text>` : '');
+    };
+    if (key === 'language') g.push(lab(r.anchor, r.lbl, 'Broca’s area', 'speaking'), lab(r.anchor2, r.lbl2, 'Wernicke’s area', 'understanding'));
+    else if (r) g.push(lab(r.anchor, r.lbl, r.name, r.deep ? 'deep inside the brain' : ''));
+  }
+  g.push('</svg>');
+  return g.join('');
+}
+
+
+const PARTS = {
+  prefrontal: { name: 'Prefrontal cortex', role: 'planning and putting steps in order', d: 'M-10,-10 L262,-10 L248,120 L238,256 L176,266 L-10,310Z' },
+  motor: { name: 'Motor cortex', role: 'starting voluntary movements', d: 'M262,-10 L332,-10 L314,90 L290,168 L284,242 L238,256 L248,120Z' },
+  parietal: { name: 'Parietal lobe', role: 'sensing space, distance and touch', d: BR.lobes.parietal },
+  occipital: { name: 'Occipital lobe', role: 'vision', d: BR.lobes.occipital },
+  temporal: { name: 'Temporal lobe', role: 'hearing and recognising sounds, faces and objects', d: BR.lobes.temporal },
+  broca: { name: 'Broca’s area', role: 'producing speech', ell: [210, 236, 36, 21, -12] },
+  wernicke: { name: 'Wernicke’s area', role: 'understanding speech', ell: [386, 266, 40, 24, -8] },
+  cerebellum: { name: 'Cerebellum', role: 'smooth, coordinated movement and balance', d: BR.cbl },
+  stem: { name: 'Brainstem', role: 'breathing, heartbeat and staying awake', d: BR.stem },
+  thalamus: { name: 'Thalamus', role: 'filtering what you pay attention to', d: BR.thal },
+  hippocampus: { name: 'Hippocampus', role: 'forming new memories', d: BR.hippo }
+};
+const CASES = {
+  spatial: { label: 'Judging space and distance', small: 'Where things are and how much room there is', answers: ['parietal'], region: 'parietal', hint: 'Near the top of the head, toward the back.' },
+  field: { label: 'Seeing one side', small: 'Noticing things on the left', answers: ['occipital'], region: 'occipital', hint: 'The very back of the brain.' },
+  motor: { label: 'Moving smoothly', small: 'Steady walking and careful hands', answers: ['cerebellum', 'motor'], region: 'cerebellum', hint: 'The small wrinkled ball tucked under the back.' },
+  attention: { label: 'Staying focused', small: 'Ignoring voices and things around them', answers: ['thalamus'], region: 'thalamus', hint: 'Deep in the middle of the brain. Look for the dashed shapes.' },
+  language: { label: 'Finding and understanding words', small: 'Saying the right word, following others', answers: ['broca', 'wernicke'], region: 'language', hint: 'On the side of the brain, along the big groove.' },
+  planning: { label: 'Planning steps', small: 'Doing a job in the right order', answers: ['prefrontal'], region: 'prefrontal', hint: 'Right behind the forehead.' },
+  memory: { label: 'Remembering', small: 'Keeping track of what they were doing', answers: ['hippocampus'], region: 'hippocampus', hint: 'Deep inside and low down: a curled dashed shape.' }
+};
+const MYSTERY_NAMES = ['Robin', 'Sam', 'Noa', 'Kai', 'Ari', 'Lee', 'Maya', 'Tom'];
+const G = { round: 0, score: 0, key: null, last: null, step: 1, tries1: 0, tries2: 0, wrong: new Set(), miss: new Set(), msg: '', msgKind: '', pts: 0 };
+const caseAgent = () => agents.find(a => a.id === game.caseId);
+
+function setupRoom(specs) {
+  agents = []; convos = []; SPEECH = []; LOG = []; pairCD = {}; simT = 0;
   Object.assign(world, { tea: 0, notes: 0, books: 0, mail: 0, plantT: -99 });
   for (const k in STATIONS) STATIONS[k].users.clear();
-  [{ name: 'Ada', p: { x: 480, y: 160 } }, { name: 'Ben', p: { x: 720, y: 410 } }, { name: 'Chen', p: { x: 780, y: 130 } }].forEach(s => {
-    const a = addAgent({ name: s.name, imp: {} }); a.x = s.p.x; a.y = s.p.y; a.timer = 0.5 + rnd() * 2;
-  });
-  P = { x: 64, y: 300, h: 0, keys: {}, dq: [], act: null, carry: false, bumpCD: 0, bumpT: -9, pull: null, goalUntil: Infinity, recallCD: 0, blankUntil: -1, nextBlank: 40,
-    struggle: 0, lastStruggle: null, lastProgress: 0, idleT: 0, helpedUntil: -1, assistNext: false, beacon: null, reminder: null, toast: null, subs: [], offer: null,
-    helpQuietUntil: 0, walkPh: 0, moving: false, unseenT: 0, unseenFor: null, recT: 0, drag: 0 };
+  specs.forEach(s => { const a = addAgent(s); if (s.mystery) { game.caseId = a.id; selId = a.id; a.timer = 0.4; } });
+  const m = caseAgent(), ada = agents.find(x => x.name === 'Ada');
+  if (m && ada) { m.partner = ada; ada.partner = m; }
 }
-function startAttempt() {
-  const c = { job: cfg.job, strength: cfg.strength, ch: new Set(cfg.ch), sup: new Set(cfg.sup) };
-  Object.assign(supports, { labels: false, checklist: false, quiet: false, tools: false });
-  setupRoom(c.sup.has('clear'));
-  const seed = (Date.now() ^ (attempts.length * 7919)) >>> 0, def = TASKS[c.job];
-  attempt = { n: attempts.length + 1, cfg: c, seed, AV: makeAV(c, seed), def, steps: def.steps.map(s => ({ ...s, done: false, helped: false })), flags: new Set(),
-    shuffle: def.steps.map((_, i) => i).sort(() => rnd() - 0.5), frames: [], events: [], ended: false,
-    stats: { bumps: 0, wrong: 0, fumbles: 0, planfails: 0, distractions: 0, forgets: 0, unseen: 0, misheard: 0, offers: 0, accepted: 0, declined: 0 } };
-  if (attempt.shuffle.every((v, i) => v === i) && attempt.shuffle.length > 1) attempt.shuffle.reverse();
-  if (sev('memory')) { P.goalUntil = sup('checklist') ? 18 : 8; P.nextBlank = (30 + rnd() * 20) / sev('memory') * (sup('checklist') ? 1.6 : 1); }
-  mode = 'playing'; paused = false; running = true;
-  toast(`Your job: ${def.name.toLowerCase()}. Walk with W A S D or the arrow keys, use things with E.`, 6);
-  logEv('done', 'done', `Attempt ${attempt.n} started: ${def.name}.`, `You started: ${def.name}.`);
-  renderPanel(); $('#fp').focus();
+function newCase() {
+  const keys = Object.keys(CASES).filter(k => k !== G.last);
+  const key = pick(keys);
+  Object.assign(G, { key, last: key, step: 1, tries1: 0, tries2: 0, wrong: new Set(), miss: new Set(), msg: '', msgKind: '', pts: 0 });
+  G.round++;
+  const imp = {}; imp[key] = G.round <= 3 ? 0.85 : 0.65;
+  Object.assign(game, { active: true, solved: false });
+  setupRoom([{ name: 'Ada', imp: {} }, { name: pick(MYSTERY_NAMES), imp, mystery: true }, { name: 'Ben', imp: {} }]);
+  running = true;
+  $('#roomView').hidden = false; $('#brainView').hidden = true;
+  render();
 }
-function endAttempt(success) {
-  if (!attempt || attempt.ended) return;
-  for (const a of agents) if (a.fpHelp) endHelp(a);
-  if (P.act) cancelAct(null);
-  attempt.frames.push(makeFrame());
-  attempt.ended = true; attempt.success = success; attempt.time = simT;
-  const n = attempt.steps.length, alone = attempt.steps.filter(s => s.done && !s.helped).length;
-  attempt.alone = alone; attempt.doneN = attempt.steps.filter(s => s.done).length; attempt.indep = Math.round(alone / n * 100);
-  const st = attempt.stats; attempt.setbacks = st.bumps + st.wrong + st.fumbles + st.planfails + st.distractions + st.forgets + st.unseen;
-  logEv(success ? 'done' : 'general', 'done', success ? `Job finished in ${fmt(simT)}.` : `Attempt stopped at ${fmt(simT)}.`, success ? 'You finished the job.' : 'You stopped.');
-  attempts.push(attempt);
-  mode = 'done'; running = false;
-  renderPanel(); loadReplay(attempts.length - 1);
-}
-
-// ---------- Events, toasts, struggle ----------
-function logEv(kind, tag, actual, perceived) {
-  if (!attempt || attempt.events.length > 220) return;
-  attempt.events.push({ t: simT, kind, tag, actual, perceived, x: P.x, y: P.y });
-}
-function toast(text, dur = 2.8) { if (P) P.toast = { text, until: simT + dur }; srSay(text); }
-function srSay(text) { const el = $('#sr'); if (el) el.textContent = text; }
-function struggle(type, amt) { P.struggle += amt; P.lastStruggle = type; }
-function mainChallenge() { return attempt ? (CH.find(c => attempt.cfg.ch.has(c.k)) || {}).k || 'general' : 'general'; }
-function playerNext() {
-  if (!attempt) return null;
-  return attempt.steps.find(s => !s.done && (s.needs || []).every(f => attempt.flags.has(f))) || attempt.steps.find(s => !s.done) || null;
-}
-function relAngle(x, y) { return angDiff(Math.atan2(y - P.y, x - P.x), P.h); }
-
-// ---------- Player ----------
-function nearStation() {
-  let best = null, bd = 1e9;
-  for (const k in STATIONS) { const s = STATIONS[k], d = Math.hypot(s.x - P.x, s.y - P.y); if (d < 50 && Math.abs(angDiff(P.h, s.face)) < 1.15 && d < bd) { bd = d; best = k; } }
-  return best;
-}
-function perceivedStation() {
-  let best = null, bd = 1e9;
-  for (const k in STATIONS) {
-    const o = attempt.AV.stOff[k], s = STATIONS[k], d = Math.hypot(s.x + o.x - P.x, s.y + o.y - P.y);
-    if (d < 55 && Math.abs(relAngle(ITEM[k].x + o.x, ITEM[k].y + o.y)) < 0.9 && d < bd) { bd = d; best = k; }
-  }
-  return best;
-}
-function playerBump(o) {
-  P.bumpCD = 1.1; P.bumpT = simT; attempt.stats.bumps++;
-  const S = sev('spatial'), M = sev('motor'), tag = S ? 'spatial' : M ? 'motor' : 'general';
-  const off = attempt.AV.off[o.id], om = off ? Math.hypot(off.x, off.y) / PX_PER_M : 0;
-  toast(`Ouch, the ${o.label}.`);
-  logEv('bump', tag, `You walked into the ${o.label}.`, S ? `The ${o.label} looked about ${Math.max(0.1, om).toFixed(1)} m away from where it really was.` : M ? 'Your step wobbled sideways.' : 'You didn’t expect it there.');
-  struggle(tag, 1);
-  if (P.act) cancelAct(null);
-}
-function tryUse() {
-  if (mode !== 'playing' || paused || P.act || P.pull) return;
-  const k = nearStation();
-  if (!k) {
-    const pk = perceivedStation();
-    if (pk) {
-      const s = STATIONS[pk], d = Math.hypot(s.x - P.x, s.y - P.y) / PX_PER_M, side = relAngle(ITEM[pk].x, ITEM[pk].y) < 0 ? 'left' : 'right';
-      attempt.stats.wrong++; toast(`Hmm, the ${s.label} isn’t quite where it seemed.`);
-      logEv('wrong', 'spatial', `The ${s.label} was ${d.toFixed(1)} m away, to your ${side}.`, `The ${s.label} looked like it was right in front of you.`);
-      struggle('spatial', 1.2);
-    } else toast('There’s nothing to use here.', 1.6);
-    return;
-  }
-  const st = STATIONS[k], step = attempt.steps.find(s => !s.done && s.st === k);
-  if (!step) {
-    attempt.stats.wrong++; toast(`Nothing to do at the ${st.label} for this job.`);
-    const nx = playerNext(), t = sev('memory') ? 'memory' : sev('planning') ? 'planning' : 'general';
-    logEv('wrong', t, `Nothing at the ${st.label} was part of the job${nx ? `. The next step was to ${nx.verb}` : ''}.`, sev('memory') ? 'You weren’t sure what you came here for.' : `You went to the ${st.label}.`);
-    struggle(t, 0.8); return;
-  }
-  const missing = (step.needs || []).filter(f => !attempt.flags.has(f));
-  if (missing.length) {
-    const need = attempt.def.steps.find(s => s.gives === missing[0]);
-    attempt.stats.planfails++;
-    const vague = sev('planning') && !sup('checklist');
-    toast(vague ? 'That didn’t work.' : `Not yet: you need to ${need.verb} first.`);
-    logEv('planfail', sev('planning') ? 'planning' : 'general', `“${cap(step.verb)}” needs “${need.verb}” first.`, vague ? 'It just didn’t work, and you weren’t sure why.' : 'It didn’t work yet.');
-    struggle('planning', 1.2); return;
-  }
-  if (st.users.size >= st.cap) { toast(`Someone is using the ${st.label}. Wait a moment.`); return; }
-  st.users.add(0);
-  const M = sev('motor') * (sup('tools') ? 0.55 : 1);
-  P.act = { step, k, t: 0, dur: step.dur * (1 + 1.3 * M) * (P.assistNext ? 0.5 : 1), h0: P.h, assisted: P.assistNext };
-}
-function cancelAct(msg) {
-  if (!P.act) return;
-  STATIONS[P.act.k].users.delete(0); P.act = null;
-  if (msg) toast(msg, 1.8);
-}
-function finishPlayerAct() {
-  const a = P.act; STATIONS[a.k].users.delete(0); P.act = null;
-  const slip = sev('motor') * 0.45 * (sup('tools') ? 0.35 : 1);
-  if (!a.assisted && rnd() < slip) {
-    attempt.stats.fumbles++; toast('Your hand slipped. Try again.');
-    logEv('fumble', 'motor', `You were at the ${STATIONS[a.k].label}, doing the right thing.`, 'Your hand slipped and you had to start again.');
-    struggle('motor', 1); return;
-  }
-  P.assistNext = false;
-  a.step.done = true; if (a.step.gives) attempt.flags.add(a.step.gives);
-  a.step.helped = a.assisted || simT < P.helpedUntil;
-  P.carry = !!(a.step.gives && CARRY.has(a.step.gives));
-  P.lastProgress = simT; P.idleT = 0; P.struggle = Math.max(0, P.struggle - 1); P.unseenFor = null;
-  if (sev('memory')) P.goalUntil = simT + (sup('checklist') ? 15 : 4);
-  toast(`Done: ${a.step.verb}.`, 2);
-  logEv('step', 'done', `You finished “${a.step.verb}”${a.step.helped ? ' with help' : ' on your own'}.`, `You finished “${hear(a.step.verb)}”.`);
-  if (attempt.steps.every(s => s.done)) { toast('Job done!', 5); endAttempt(true); }
-}
-function pull(src, label) {
-  if (P.pull) return;
-  const A = sev('attention');
-  P.pull = { ang: Math.atan2(src.y - P.y, src.x - P.x), until: simT + 1.3 + A * 1.4 };
-  attempt.stats.distractions++;
-  if (P.act) cancelAct(null);
-  toast(`Your attention drifts to ${label}.`, 2.2);
-  logEv('distract', 'attention', `${cap(label)}: nothing you needed for the job.`, `Your gaze was pulled to ${label}, and you lost your thread.`);
-  struggle('attention', 0.6);
-}
-function updatePlayer(dt) {
-  const M = sev('motor') * (sup('tools') ? 0.6 : 1);
-  const now = { ...P.keys }; P.dq.push({ t: simT, k: now });
-  const lag = M * 0.3; while (P.dq.length > 1 && P.dq[1].t <= simT - lag) P.dq.shift();
-  const k = P.dq[0].t <= simT - lag + 1e-6 ? P.dq[0].k : {};
-  if (P.pull) { P.h += clamp(angDiff(P.pull.ang, P.h), -3 * dt, 3 * dt); if (simT > P.pull.until) P.pull = null; P.drag = 0; }
-  else {
-    const turn = (k.right ? 1 : 0) - (k.left ? 1 : 0);
-    P.h += turn * 2.2 * (1 - 0.4 * M) * dt + P.drag; P.drag = 0;
-  }
-  P.h += (Math.sin(simT * 7.3) * 0.3 + (rnd() - 0.5) * 0.8) * M * dt;
-  const mv = P.pull ? 0 : (k.fwd ? 1 : 0) - (k.back ? 1 : 0);
-  P.moving = !!mv;
-  if (mv) {
-    const sp = 95 * (1 - 0.5 * M) * mv, lat = (rnd() - 0.5) * M * 70;
-    P.x += (Math.cos(P.h) * sp - Math.sin(P.h) * lat) * dt; P.y += (Math.sin(P.h) * sp + Math.cos(P.h) * lat) * dt;
-    P.walkPh += dt * 9 * (1 - 0.4 * M);
-    const hit = collide(P);
-    if (hit && P.bumpCD <= 0) playerBump(hit);
-    if (P.act) cancelAct('You moved away, so you stopped.');
-  }
-  P.bumpCD -= dt;
-  for (const a of agents) {
-    const d = dist(a, P);
-    if (d < 26 && d > 0.01) { const push = 26 - d, nx = (a.x - P.x) / d, ny = (a.y - P.y) / d; a.x += nx * push * 0.7; a.y += ny * push * 0.7; P.x -= nx * push * 0.3; P.y -= ny * push * 0.3; collide(a); collide(P); }
-  }
-  if (P.act) {
-    if (Math.abs(angDiff(P.h, P.act.h0)) > 0.75) cancelAct('You turned away, so you stopped.');
-    else { P.act.t += dt; if (P.act.t >= P.act.dur) finishPlayerAct(); }
-  }
-  if (mode !== 'playing') return;
-  // left-side vision: the next place is in view but on the faded side
-  const F = attempt.AV.F, nx = playerNext();
-  if (F && nx) {
-    const I = ITEM[nx.st], r = relAngle(I.x, I.y);
-    if (r < -0.12 && r > -FOV / 2 - 0.05 && !P.act) {
-      P.unseenT += dt;
-      if (P.unseenT > 3 && P.unseenFor !== nx) {
-        P.unseenFor = nx; attempt.stats.unseen++;
-        logEv('unseen', 'field', `The ${STATIONS[nx.st].label} was in view, on your left.`, 'You couldn’t see it at all.');
-        struggle('field', 1.3);
-      }
-    } else P.unseenT = 0;
-  }
-  // memory: blank moments
-  const Mm = sev('memory');
-  if (Mm && simT > P.nextBlank) {
-    P.blankUntil = simT + 3.5 + 3 * Mm; P.nextBlank = simT + (35 + rnd() * 25) / Mm * (sup('checklist') ? 1.6 : 1);
-    attempt.stats.forgets++;
-    logEv('forget', 'memory', nx ? `Your next step was to ${nx.verb}.` : 'You were almost done.', 'Your mind went blank: what were you doing?');
-    struggle('memory', 1.5);
-  }
-  // attention: stray noises
-  const A = sev('attention') * (sup('quiet') ? 0.3 : 1);
-  if (A && !P.pull && rnd() < A * 0.07 * dt) { const s = pick(POIS); pull(s, s.label); }
-  // standing around without progress
-  if (!P.act) { P.idleT += dt; if (P.idleT > 14) { P.idleT = 0; struggle(P.lastStruggle || mainChallenge(), 0.9); } }
-  P.struggle = Math.max(0, P.struggle - 0.07 * dt);
-  noticeCheck(dt);
-  if (P.beacon && simT > P.beacon.until) P.beacon = null;
-}
-
-// ---------- Others notice and help ----------
-function onSay(a, text) {
-  if (mode !== 'playing' || !P || !attempt) return;
-  const d = Math.hypot(a.x - P.x, a.y - P.y); if (d > 380) return;
-  const r = relAngle(a.x, a.y), F = attempt.AV.F, offering = a.fpHelp && a.fpHelp.phase === 'offer';
-  if (F && r < -0.15 && r > -2.4 && !offering && rnd() < F * 0.8) {
-    attempt.stats.unseen++;
-    logEv('unseen', 'field', `${a.name} said “${text}”, on your left.`, 'You didn’t notice them at all.');
-    return;
-  }
-  const shown = hear(text);
-  P.subs.push({ name: a.name, color: a.color, text: shown, t: simT }); if (P.subs.length > 3) P.subs.shift();
-  if (garbleText(text, sev('language') * (sup('pictures') ? 0.6 : 1), attempt.seed) !== text) {
-    attempt.stats.misheard++;
-    logEv('misheard', 'language', `${a.name} said “${text}”`, `You heard “${shown}”`);
-    if (offering) struggle('language', 0.3);
-  }
-  const A = sev('attention') * (sup('quiet') ? 0.3 : 1);
-  if (A && !a.fpHelp && d < 320 && rnd() < A * 0.4) pull(a, `${a.name}’s voice`);
-  srSay(`${a.name}: ${shown}`);
-}
-const helperBusy = () => agents.some(a => a.fpHelp);
-function noticeCheck(dt) {
-  if (P.offer || helperBusy() || simT < P.helpQuietUntil || P.struggle < 1.6) return;
-  if (rnd() > 0.45 * (P.struggle - 1.6) * dt) return;
-  const free = agents.filter(a => ['idle', 'thinking', 'walking', 'teamwait', 'waiting'].includes(a.state) && (a.helpCD || 0) < simT && dist(a, P) < 360);
-  if (!free.length) return;
-  free.sort((x, y) => dist(x, P) - dist(y, P));
-  beginHelp(free[0], P.lastStruggle || 'general', false);
-}
-function beginHelp(a, type, asked) {
-  detachConvo(a); release(a);
-  a.fpHelp = { phase: 'approach', type, t: 0, repath: 0 }; a.state = 'fphelp';
-  a.path = findPath(a.x, a.y, P.x, P.y, 18); a.pathI = 0;
-  logEv('help', 'support', asked ? `You asked for help, and ${a.name} came over.` : `${a.name} noticed you ${WHY[type] || WHY.general} and came over.`, `${a.name} walked up to you.`);
-}
-function helperUpdate(a, dt) {
-  a.bumpCD -= dt; a.talkCD -= dt;
-  if (a.bubble) { a.bubble.t -= dt; if (a.bubble.t <= 0) a.bubble = null; }
-  const H = a.fpHelp; H.t += dt;
-  const walk = () => {
-    if (a.pathI >= a.path.length) return true;
-    const wp = a.path[a.pathI];
-    if (Math.hypot(wp.x - a.x, wp.y - a.y) < 6) { a.pathI++; return false; }
-    moveToward(a, wp.x, wp.y, 1.1, dt, false); return false;
-  };
-  if (H.phase === 'approach') {
-    if (dist(a, P) < 54 || mode !== 'playing') { H.phase = 'offer'; makeOffer(a, H.type); return; }
-    H.repath -= dt; if (H.repath <= 0) { H.repath = 1.2; a.path = findPath(a.x, a.y, P.x, P.y, 18); a.pathI = 0; }
-    walk(); if (H.t > 22) endHelp(a);
-  } else if (H.phase === 'offer') {
-    faceToward(a, Math.atan2(P.y - a.y, P.x - a.x), dt);
-    if (P.offer && simT > P.offer.until) declineHelp(true);
-  } else if (H.phase === 'guide') {
-    if (walk() || H.t > 20) { if (H.st) say(a, `Here it is, the ${STATIONS[H.st].label}.`); H.phase = 'wait'; H.t = 0; }
-  } else {
-    faceToward(a, Math.atan2(P.y - a.y, P.x - a.x), dt);
-    if (H.t > 3.5) endHelp(a);
-  }
-}
-function endHelp(a) {
-  if (P && P.offer && P.offer.npc === a) { P.offer = null; renderPanel(); }
-  a.fpHelp = null; a.helpCD = simT + 30; resume(a);
-}
-function makeOffer(a, type) {
-  const nx = playerNext(), st = nx ? STATIONS[nx.st].label : 'next thing';
-  const line = fill(pick(OFFERS[type] || OFFERS.general), { st, verb: nx ? nx.verb : 'carry on' });
-  say(a, line);
-  P.offer = { npc: a, type, until: simT + 11, shown: hear(line) };
-  attempt.stats.offers++;
-  renderPanel();
-}
-function acceptHelp() {
-  if (!P.offer) return;
-  const a = P.offer.npc, type = P.offer.type, nx = playerNext(); P.offer = null;
-  attempt.stats.accepted++; P.helpedUntil = simT + 25; P.struggle = 0; P.helpQuietUntil = simT + 22;
-  const effects = [];
-  if (nx) { P.reminder = { text: `${a.name}: next, ${nx.verb}`, icon: iconsFor(nx.verb + ' ' + nx.st), until: simT + 16 }; effects.push(`reminded you to ${nx.verb}`); }
-  if (type === 'memory') P.goalUntil = simT + 15;
-  if (type === 'motor') { P.assistNext = true; effects.push('steadied your next action'); }
-  if (nx && type !== 'memory' && type !== 'planning') {
-    P.beacon = { st: nx.st, until: simT + 18 };
-    a.fpHelp.phase = 'guide'; a.fpHelp.t = 0; a.fpHelp.st = nx.st;
-    const s = STATIONS[nx.st]; a.path = findPath(a.x, a.y, s.x + (rnd() - 0.5) * 30, s.y + 22, 18); a.pathI = 0;
-    say(a, `Follow me, the ${s.label} is this way.`); effects.push(`walked you to the ${s.label}`);
-  } else { a.fpHelp.phase = 'wait'; a.fpHelp.t = 0; say(a, nx ? `You were going to ${nx.verb}. Carry on from there.` : 'You’re nearly done!'); }
-  logEv('help', 'support', `${a.name} ${effects.join(' and ') || 'helped'}.`, `You said yes. ${P.reminder ? `You were shown: “${P.reminder.text}”.` : ''}`);
-  renderPanel(); $('#fp').focus();
-}
-function declineHelp(timeout) {
-  if (!P.offer) return;
-  const a = P.offer.npc; P.offer = null;
-  attempt.stats.declined++; P.struggle *= 0.4; P.helpQuietUntil = simT + 25;
-  say(a, 'Okay! Just ask if you need anything.');
-  a.fpHelp.phase = 'wait'; a.fpHelp.t = 0;
-  logEv('help', 'support', timeout ? `${a.name} offered help, and you didn’t answer.` : `${a.name} offered help, and you said no thanks.`, timeout ? 'You didn’t respond in time.' : 'You chose to keep going alone.');
-  renderPanel(); $('#fp').focus();
-}
-function askForHelp() {
-  if (mode !== 'playing' || P.offer || helperBusy()) return;
-  const free = agents.filter(a => !a.fpHelp).sort((x, y) => dist(x, P) - dist(y, P));
-  if (!free.length) return;
-  beginHelp(free[0], P.lastStruggle || mainChallenge(), true);
-  toast(`You asked ${free[0].name} for help.`);
-}
-function remind() {
-  if (mode !== 'playing') return;
-  if (!sev('memory')) { toast('Your goal is already on screen.', 1.6); return; }
-  if (simT < P.recallCD) { toast('You can’t bring it back yet.', 1.6); return; }
-  P.goalUntil = simT + 4; P.recallCD = simT + 12 * sev('memory');
-}
-
-// ---------- Frames: one snapshot of what the room and the player looked like ----------
-function goalFrame() {
-  if (!attempt || mode !== 'playing') return null;
-  if (simT < P.blankUntil) return null;
-  let alpha = sev('memory') ? clamp(P.goalUntil - simT, 0, 1) : 1;
-  if (P.pull) alpha *= 0.15;
-  if (alpha <= 0.01) return null;
-  const chk = sup('checklist'), plan = sev('planning') && !chk, mem = sev('memory') && !chk, L = sev('language') * (sup('pictures') ? 0.6 : 1);
-  const order = plan ? attempt.shuffle.map(i => attempt.steps[i]) : attempt.steps, nx = playerNext();
-  return { alpha, title: garbleText(attempt.def.name, L, attempt.seed), lines: order.map((s, i) => ({
-    text: (plan ? '• ' : `${i + 1}. `) + (sup('pictures') ? iconsFor(s.verb + ' ' + s.st) + ' ' : '') + garbleText(s.verb, L, attempt.seed),
-    done: !mem && s.done, cur: (chk || !plan) && s === nx })) };
-}
-function makeFrame() {
-  const nx = attempt && !attempt.ended ? playerNext() : null;
-  const near = mode === 'playing' && !P.act ? nearStation() : null;
-  let leftArrow = null;
-  if (attempt && attempt.AV.sup.leftMarkers && nx && mode === 'playing') { const I = ITEM[nx.st]; if (relAngle(I.x, I.y) < -0.2) leftArrow = STATIONS[nx.st].label; }
-  return {
-    t: simT, cam: { x: P.x, y: P.y, h: P.h }, bob: P.moving ? Math.sin(P.walkPh) * 2.2 : 0,
-    act: P.act ? P.act.t / P.act.dur : null, actLabel: P.act ? P.act.step.verb : null, carry: P.carry, bumpT: P.bumpT, pull: !!P.pull,
-    blank: mode === 'playing' && simT < P.blankUntil, goal: goalFrame(),
-    reminder: P.reminder && simT < P.reminder.until ? { text: P.reminder.text, icon: P.reminder.icon } : null,
-    toast: P.toast && simT < P.toast.until ? P.toast.text : null,
-    prompt: near ? `E  Use the ${STATIONS[near].label}` : null,
-    subs: P.subs.filter(s => simT - s.t < 5).map(s => ({ name: s.name, color: s.color, text: s.text })),
-    offer: P.offer ? { name: P.offer.npc.name, text: P.offer.shown } : null,
-    beacon: P.beacon ? P.beacon.st : null, leftArrow,
-    steps: attempt ? `${attempt.steps.filter(s => s.done).length}/${attempt.steps.length}` : '',
-    npcs: agents.map(a => ({ id: a.id, name: a.name, color: a.color, x: a.x, y: a.y, h: a.h, state: a.state, moveAmt: a.moveAmt || 0, gait: a.gait || 0,
-      carry: !!(a.run && [...a.run.flags].some(f => CARRY.has(f))), say: a.bubble ? a.bubble.text : null, p: a.state === 'acting' ? clamp(1 - a.timer / a.actDur, 0, 1) : 0 }))
-  };
-}
-function animNpcs() {
-  for (const a of agents) {
-    const moved = Math.hypot(a.x - (a.lx ?? a.x), a.y - (a.ly ?? a.y)); a.lx = a.x; a.ly = a.y;
-    a.moveAmt = (a.moveAmt || 0) + ((moved > 0.05 ? 1 : 0) - (a.moveAmt || 0)) * 0.2;
-    a.gait = (a.gait || 0) + moved * 0.32;
-  }
-}
-
-// ---------- First-person renderer ----------
-function project(cam, k, W, x, y) {
-  const dx = x - cam.x, dy = y - cam.y, c = Math.cos(cam.h), s = Math.sin(cam.h);
-  const depth = dx * c + dy * s, lat = -dx * s + dy * c;
-  return depth > 4 ? { sx: W / 2 + lat * k / depth, d: depth, f: k / depth } : null;
-}
-function rrect(g, x, y, w, h, r, fillC, strokeC) { g.beginPath(); if (g.roundRect) g.roundRect(x, y, w, h, r); else g.rect(x, y, w, h); if (fillC) { g.fillStyle = fillC; g.fill(); } if (strokeC) { g.strokeStyle = strokeC; g.stroke(); } }
-function drawSlice(g, h, hor, k, step) {
-  const s = h.r.s, d = h.d, x = h.c * step, f = k / d, yAt = hh => hor + (EYE - hh) * f;
-  const top = yAt(s.h), bot = yAt(s.base || 0), uRel = h.fx ? h.u - h.r.y0 : h.u - h.r.x0;
-  let yTop = top;
-  if (s.top && s.h < EYE) { const yb = hor + (EYE - s.h) * k / h.dx2; yTop = yb; g.fillStyle = s.top; g.fillRect(x, yb, step, top - yb + 0.6); }
-  g.fillStyle = s.col; g.fillRect(x, top, step, bot - top + 0.6);
-  switch (s.tex) {
-    case 'wall': g.fillStyle = '#B9C2BE'; g.fillRect(x, yAt(10), step, 10 * f); break;
-    case 'window':
-      g.fillStyle = '#B9C2BE'; g.fillRect(x, yAt(10), step, 10 * f);
-      if (uRel > 8 && uRel < 102) { g.fillStyle = '#BCDCF0'; g.fillRect(x, yAt(200), step, 110 * f); }
-      if (Math.abs(uRel - 55) < 2 || (uRel > 4 && uRel < 9) || (uRel > 101 && uRel < 106)) { g.fillStyle = '#FFFFFF'; g.fillRect(x, yAt(205), step, 120 * f); }
-      break;
-    case 'door':
-      if (uRel < 4 || uRel > 76) { g.fillStyle = '#6E4A2F'; g.fillRect(x, top, step, bot - top); }
-      if (Math.abs(uRel - 66) < 2.5) { g.fillStyle = '#E2C27A'; g.fillRect(x, yAt(100), step, 6 * f); }
-      break;
-    case 'counter':
-      if (!h.fx) {
-        for (const e of [10, 54, 98]) if (Math.abs(uRel - e) < 1.6) { g.fillStyle = '#9AA5A9'; g.fillRect(x, yAt(66), step, 60 * f); }
-        if (Math.abs(uRel - 48) < 2 || Math.abs(uRel - 60) < 2) { g.fillStyle = '#7C878C'; g.fillRect(x, yAt(58), step, 9 * f); }
-      }
-      g.fillStyle = '#C9D1D4'; g.fillRect(x, yAt(76), step, 6 * f);
-      break;
-    case 'books':
-      if (h.fx) {
-        const rows = 6, rh = (s.h - 10) / rows;
-        g.fillStyle = '#5E4430'; g.fillRect(x, top, step, bot - top);
-        for (let i = 0; i < rows; i++) { const bi = Math.floor(uRel / 7) + i * 5; if (bi % 6 === 0) continue; g.fillStyle = BOOKCOLS[bi % BOOKCOLS.length]; g.fillRect(x, yAt(8 + (i + 1) * rh - 3), step, (rh - 7 - (bi % 3) * 2) * f); }
-      }
-      break;
-    case 'board':
-      g.fillStyle = '#B0BAC0'; g.fillRect(x, top, step, 4 * f); g.fillRect(x, bot - 4 * f, step, 4 * f);
-      if (world.notes && uRel > 10 && uRel < 10 + world.notes * 17 && uRel % 17 < 12) { g.fillStyle = BOOKCOLS[Math.floor(uRel / 17) % 6]; g.fillRect(x, yAt(170), step, 4 * f); }
-      break;
-  }
-  const shade = h.fx ? 0.1 : 0, fog = Math.min(0.42, d / 1700);
-  if (shade) { g.globalAlpha = shade; g.fillStyle = '#10181C'; g.fillRect(x, top, step, bot - top); }
-  if (fog > 0.02) { g.globalAlpha = fog; g.fillStyle = FOG; g.fillRect(x, yTop, step, bot - yTop); }
-  g.globalAlpha = 1;
-}
-function drawItem(g, key, p, hor) {
-  const f = p.f, sx = p.sx, yAt = hh => hor + (EYE - hh) * f;
-  g.save(); g.lineCap = 'round';
-  if (key === 'kettle') {
-    const y = yAt(76);
-    g.fillStyle = '#56636D'; g.beginPath(); g.ellipse(sx, y - 11 * f, 10 * f, 11 * f, 0, 0, 7); g.fill();
-    g.fillStyle = '#7F8E99'; g.fillRect(sx - 6 * f, y - 24 * f, 12 * f, 3.5 * f);
-    g.strokeStyle = '#56636D'; g.lineWidth = 3 * f; g.beginPath(); g.moveTo(sx + 8 * f, y - 12 * f); g.lineTo(sx + 17 * f, y - 21 * f); g.stroke();
-    g.beginPath(); g.arc(sx - 10 * f, y - 12 * f, 6 * f, Math.PI * 0.5, Math.PI * 1.5); g.stroke();
-  } else if (key === 'sink') {
-    const y = yAt(76);
-    g.fillStyle = '#AEB9C0'; g.fillRect(sx - 32 * f, y - 2 * f, 64 * f, 3.5 * f);
-    g.strokeStyle = '#98A5AD'; g.lineWidth = 3.5 * f; g.beginPath(); g.moveTo(sx, y); g.lineTo(sx, y - 22 * f); g.lineTo(sx + 10 * f, y - 22 * f); g.lineTo(sx + 10 * f, y - 16 * f); g.stroke();
-  } else if (key === 'cupboard') {
-    const yT = yAt(182), yB = yAt(112);
-    g.fillStyle = '#D9C6A5'; g.fillRect(sx - 44 * f, yT, 88 * f, yB - yT);
-    g.strokeStyle = '#A28A64'; g.lineWidth = 1.5 * f; g.strokeRect(sx - 44 * f, yT, 88 * f, yB - yT);
-    g.beginPath(); g.moveTo(sx, yT); g.lineTo(sx, yB); g.stroke();
-    g.fillStyle = '#7A6648'; g.fillRect(sx - 6 * f, yB - 14 * f, 2.5 * f, 9 * f); g.fillRect(sx + 3.5 * f, yB - 14 * f, 2.5 * f, 9 * f);
-  } else if (key === 'plant') {
-    for (let i = 0; i < 11; i++) {
-      const an = i / 11 * Math.PI * 2, r = 16 + (i % 3) * 6;
-      g.fillStyle = i % 2 ? '#3F8B4E' : '#57A463';
-      g.beginPath(); g.ellipse(sx + Math.cos(an) * r * f, yAt(78 + Math.sin(an) * 22), 13 * f, 6.5 * f, an, 0, 7); g.fill();
-    }
-  }
-  g.restore();
-}
-function drawNpc(g, n, p, cam, hor, W) {
-  const f = p.f, scl = 2.75 * f, floorY = hor + EYE * f;
-  const rel = angDiff(n.h, Math.atan2(cam.y - n.y, cam.x - n.x));
-  const proxy = { name: n.name, color: n.color, h: Math.PI / 2 + rel, state: n.state, moveAmt: n.moveAmt, gait: n.gait, run: n.carry ? CARRY_RUN : null, bubble: n.say ? 1 : null };
-  const save = ctx; ctx = g;
-  g.save(); g.translate(p.sx, floorY - 10 * scl); g.scale(scl, scl);
-  g.fillStyle = 'rgba(0,0,0,0.18)'; g.beginPath(); g.ellipse(0, 9.5, 11, 4, 0, 0, 7); g.fill();
-  drawPerson(proxy);
-  g.restore(); ctx = save;
-  if (f > 0.22) {
-    const u = W / 900, y = floorY - 53 * scl;
-    g.save(); g.font = `700 ${Math.max(10, 12 * u)}px ${BODY}`; g.textAlign = 'center'; g.textBaseline = 'bottom';
-    g.lineWidth = 3 * u; g.strokeStyle = 'rgba(255,255,255,0.85)'; g.strokeText(n.name + (n.say ? ' 💬' : ''), p.sx, y); g.fillStyle = '#1E2A30'; g.fillText(n.name + (n.say ? ' 💬' : ''), p.sx, y);
-    g.restore();
-  }
-}
-function drawBeacon(g, p, hor, t) {
-  const f = p.f, a = 0.35 + Math.sin(t * 5) * 0.15, yT = hor + (EYE - 235) * f, yB = hor + EYE * f;
-  const gr = g.createLinearGradient(0, yT, 0, yB); gr.addColorStop(0, 'rgba(255,194,61,0)'); gr.addColorStop(1, `rgba(255,170,20,${a + 0.25})`);
-  g.fillStyle = gr; g.fillRect(p.sx - 9 * f, yT, 18 * f, yB - yT);
-  g.strokeStyle = `rgba(230,140,0,${a + 0.4})`; g.lineWidth = 3 * f; g.beginPath(); g.ellipse(p.sx, yB, 26 * f, 8 * f, 0, 0, 7); g.stroke();
-}
-function wrapLines(g, text, maxW) {
-  const words = String(text).split(' '), lines = []; let cur = '';
-  for (const w of words) { const t = cur ? cur + ' ' + w : w; if (g.measureText(t).width > maxW && cur) { lines.push(cur); cur = w; } else cur = t; }
-  if (cur) lines.push(cur); return lines;
-}
-function renderFP(g, W, H, fr, AV) {
-  const cam = fr.cam, k = (W / 2) / Math.tan(FOV / 2), u = W / 900, hor = H * 0.5 + (fr.bob || 0) * u;
-  g.setTransform(1, 0, 0, 1, 0, 0);
-  let gr = g.createLinearGradient(0, 0, 0, hor); gr.addColorStop(0, '#F3F5F4'); gr.addColorStop(1, '#DCE1DE'); g.fillStyle = gr; g.fillRect(0, 0, W, hor + 1);
-  gr = g.createLinearGradient(0, hor, 0, H); gr.addColorStop(0, '#C6CEC9'); gr.addColorStop(1, '#9AA69F'); g.fillStyle = gr; g.fillRect(0, hor, W, H - hor);
-  const list = [], step = 2, cols = Math.ceil(W / step);
-  for (let c = 0; c < cols; c++) {
-    const sx = c * step + step / 2, ang = cam.h + Math.atan((sx - W / 2) / k), dx = Math.cos(ang) || 1e-9, dy = Math.sin(ang) || 1e-9, ca = Math.cos(ang - cam.h);
-    let wallD = Infinity; const hits = [];
-    for (const r of AV.rects) {
-      let t1 = (r.x0 - cam.x) / dx, t2 = (r.x1 - cam.x) / dx; if (t1 > t2) { const q = t1; t1 = t2; t2 = q; }
-      let t3 = (r.y0 - cam.y) / dy, t4 = (r.y1 - cam.y) / dy; if (t3 > t4) { const q = t3; t3 = t4; t4 = q; }
-      const tEn = Math.max(t1, t3), tEx = Math.min(t2, t4);
-      if (tEx < tEn || tEn < 1) continue;
-      const fx = t1 > t3, hit = { d: tEn * ca, dx2: tEx * ca, r, u: fx ? cam.y + tEn * dy : cam.x + tEn * dx, fx, c };
-      if (r.wall && hit.d < wallD) wallD = hit.d;
-      hits.push(hit);
-    }
-    for (const h of hits) if (h.d <= wallD + 0.5) list.push(h);
-  }
-  for (const n of fr.npcs) { const p = project(cam, k, W, n.x, n.y); if (p && p.sx > -120 * u && p.sx < W + 120 * u) list.push({ d: p.d, npc: n, p }); }
-  for (const key in ITEM) {
-    if (!['kettle', 'sink', 'cupboard', 'plant'].includes(key)) continue;
-    const I = ITEM[key], o = AV.stOff[key] || ZERO, p = project(cam, k, W, I.x + o.x, I.y + o.y);
-    if (p) list.push({ d: p.d - (key === 'cupboard' ? 3 : 60), item: key, p });
-  }
-  if (fr.beacon) { const I = ITEM[fr.beacon], p = project(cam, k, W, I.x, I.y); if (p) list.push({ d: p.d - 62, beacon: true, p }); }
-  list.sort((a, b) => b.d - a.d);
-  for (const it of list) {
-    if (it.r) drawSlice(g, it, hor, k, step);
-    else if (it.npc) drawNpc(g, it.npc, it.p, cam, hor, W);
-    else if (it.item) drawItem(g, it.item, it.p, hor);
-    else drawBeacon(g, it.p, hor, fr.t);
-  }
-  // station labels at the places they appear to be
-  for (const key in ITEM) {
-    const I = ITEM[key], o = AV.stOff[key] || ZERO, p = project(cam, k, W, I.x + o.x, I.y + o.y);
-    if (!p || p.sx < 0 || p.sx > W) continue;
-    if (!AV.sup.labels && p.d > 150) continue;
-    let alpha = 1; if (AV.F && p.sx < W * 0.5) alpha *= 1 - AV.F * (1 - p.sx / (W * 0.5)) * (AV.sup.leftMarkers ? 0.6 : 1);
-    const y = hor + (EYE - I.lh) * p.f, big = AV.sup.labels, fs = (big ? 14 : 11) * u, text = STATIONS[key].label.toUpperCase();
-    g.save(); g.globalAlpha = alpha; g.font = `700 ${fs}px ${BODY}`; g.textAlign = 'center'; g.textBaseline = 'middle';
-    const w = g.measureText(text).width + 14 * u;
-    rrect(g, p.sx - w / 2, y - fs * 0.85, w, fs * 1.7, 5 * u, big ? '#FFD34D' : 'rgba(30,42,48,0.75)');
-    g.fillStyle = big ? '#1E2A30' : '#FFFFFF'; g.fillText(text, p.sx, y + 0.5);
-    g.restore();
-  }
-  drawHUD(g, W, H, fr, AV, k, u);
-}
-function drawHUD(g, W, H, fr, AV, k, u) {
-  const cam = fr.cam;
-  // your hands
-  const skin = '#E2B08A', sleeve = '#33424A', bob = Math.sin((fr.t || 0) * 8) * 4 * u;
-  const hands = fr.act !== null ? [[W * 0.42, H * 0.82 + bob], [W * 0.58, H * 0.82 - bob]] : fr.carry ? [[W * 0.44, H * 0.9], [W * 0.56, H * 0.9]] : [];
-  for (const [hx, hy] of hands) {
-    g.fillStyle = sleeve; g.beginPath(); g.ellipse(hx + (hx < W / 2 ? -30 : 30) * u, hy + 60 * u, 42 * u, 50 * u, 0, 0, 7); g.fill();
-    g.fillStyle = skin; g.beginPath(); g.ellipse(hx, hy, 30 * u, 36 * u, 0, 0, 7); g.fill();
-  }
-  if (fr.carry && fr.act === null) { rrect(g, W / 2 - 26 * u, H * 0.8, 52 * u, 40 * u, 6 * u, '#FBFCFB', '#7A8D90'); }
-  // left-side vision
-  if (AV.F) {
-    const a = AV.F * 0.96 * (AV.sup.leftMarkers ? 0.55 : 1), gr = g.createLinearGradient(0, 0, W * 0.56, 0);
-    gr.addColorStop(0, `rgba(12,15,17,${a})`); gr.addColorStop(0.55, `rgba(12,15,17,${a * 0.75})`); gr.addColorStop(1, 'rgba(12,15,17,0)');
-    g.fillStyle = gr; g.fillRect(0, 0, W * 0.56, H);
-  }
-  if (AV.sup.leftMarkers) { g.fillStyle = '#F2C200'; g.fillRect(0, 0, 9 * u, H); }
-  if (fr.leftArrow) {
-    const pulse = 0.6 + Math.sin((fr.t || 0) * 6) * 0.4;
-    g.save(); g.globalAlpha = pulse; g.fillStyle = '#F2C200'; g.beginPath(); g.moveTo(22 * u, H / 2); g.lineTo(52 * u, H / 2 - 26 * u); g.lineTo(52 * u, H / 2 + 26 * u); g.closePath(); g.fill();
-    g.globalAlpha = 1; g.font = `700 ${13 * u}px ${BODY}`; g.textBaseline = 'middle'; g.fillStyle = '#F2C200'; g.fillText(fr.leftArrow.toUpperCase(), 60 * u, H / 2); g.restore();
-  }
-  if (fr.pull) { const gr = g.createRadialGradient(W / 2, H / 2, H * 0.25, W / 2, H / 2, H * 0.8); gr.addColorStop(0, 'rgba(60,40,0,0)'); gr.addColorStop(1, 'rgba(60,40,0,0.4)'); g.fillStyle = gr; g.fillRect(0, 0, W, H); }
-  if (fr.t - fr.bumpT < 0.35) { const a = 0.45 * (1 - (fr.t - fr.bumpT) / 0.35), gr = g.createRadialGradient(W / 2, H / 2, H * 0.3, W / 2, H / 2, H * 0.75); gr.addColorStop(0, 'rgba(200,40,30,0)'); gr.addColorStop(1, `rgba(200,40,30,${a})`); g.fillStyle = gr; g.fillRect(0, 0, W, H); }
-  // beacon arrow when the beacon is off screen
-  if (fr.beacon) {
-    const I = ITEM[fr.beacon], r = angDiff(Math.atan2(I.y - cam.y, I.x - cam.x), cam.h);
-    if (Math.abs(r) > FOV / 2) {
-      const right = r > 0, x = right ? W - 40 * u : 40 * u;
-      g.fillStyle = '#FFAA14'; g.beginPath(); g.moveTo(x + (right ? 18 : -18) * u, H * 0.42); g.lineTo(x - (right ? 12 : -12) * u, H * 0.42 - 20 * u); g.lineTo(x - (right ? 12 : -12) * u, H * 0.42 + 20 * u); g.closePath(); g.fill();
-    }
-  }
-  // goal card
-  const G = fr.goal;
-  if (G) {
-    g.save(); g.globalAlpha = G.alpha;
-    const pad = 12 * u, lh = 21 * u, w = 300 * u, h = pad * 2 + 26 * u + G.lines.length * lh, x0 = 14 * u + (AV.sup.leftMarkers ? 8 * u : 0), y0 = 14 * u;
-    rrect(g, x0, y0, w, h, 10 * u, 'rgba(255,255,255,0.92)');
-    g.fillStyle = '#5A6B70'; g.font = `600 ${10 * u}px ${MONO}`; g.textBaseline = 'alphabetic'; g.fillText('YOUR JOB', x0 + pad, y0 + pad + 8 * u);
-    g.fillStyle = '#1E2A30'; g.font = `700 ${16 * u}px ${DISPLAY}`; g.fillText(G.title, x0 + pad, y0 + pad + 26 * u);
-    G.lines.forEach((l, i) => {
-      const y = y0 + pad + 26 * u + (i + 1) * lh;
-      g.font = `${l.cur ? 700 : 400} ${13.5 * u}px ${BODY}`; g.fillStyle = l.done ? '#8A979B' : l.cur ? '#2950B8' : '#1E2A30';
-      g.fillText((l.done ? '✓ ' : l.cur ? '▶ ' : '') + l.text, x0 + pad, y);
-      if (l.done) { const tw = g.measureText('✓ ' + l.text).width; g.fillRect(x0 + pad, y - 4.5 * u, tw, 1.2 * u); }
+const ptsFor = tries => tries === 1 ? 2 : tries === 2 ? 1 : 0;
+function chooseDifficulty(k) {
+  if (G.step !== 1) return;
+  G.tries1++;
+  const a = caseAgent();
+  if (k === G.key) {
+    const p = ptsFor(G.tries1); G.pts += p; G.score += p;
+    G.step = 2; G.msg = `Yes, ${esc(a.name)} has trouble with ${esc(CASES[k].label.toLowerCase())}.${p ? ` +${p}` : ''}`; G.msgKind = 'good';
+    running = false;
+    $('#roomView').hidden = true; $('#brainView').hidden = false;
+    $('#brainView').innerHTML = pickerSVG();
+    $('#brainView').querySelectorAll('[data-part]').forEach(el => {
+      el.addEventListener('click', () => choosePart(el.dataset.part));
+      el.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); choosePart(el.dataset.part); } });
     });
-    g.restore();
-  }
-  if (fr.reminder) {
-    const y0 = G ? 14 * u + (12 * 2 + 26 + G.lines.length * 21) * u + 10 * u : 14 * u, x0 = 14 * u;
-    g.save(); g.font = `700 ${13.5 * u}px ${BODY}`; const text = (fr.reminder.icon ? fr.reminder.icon + '  ' : '') + fr.reminder.text, w = g.measureText(text).width + 24 * u;
-    rrect(g, x0, y0, w, 32 * u, 8 * u, '#FFE7A3', '#C98A12'); g.fillStyle = '#3A2A00'; g.textBaseline = 'middle'; g.fillText(text, x0 + 12 * u, y0 + 16.5 * u); g.restore();
-  }
-  // time and progress
-  g.save(); g.font = `600 ${12 * u}px ${MONO}`; g.textAlign = 'right'; g.textBaseline = 'top';
-  const tt = `${fmt(fr.t)}${fr.steps ? '  ·  ' + fr.steps + ' steps' : ''}`, tw = g.measureText(tt).width + 18 * u;
-  rrect(g, W - 14 * u - tw, 14 * u, tw, 26 * u, 13 * u, 'rgba(255,255,255,0.85)'); g.fillStyle = '#1E2A30'; g.fillText(tt, W - 23 * u, 20.5 * u); g.restore();
-  // toast
-  if (fr.toast) {
-    g.save(); g.font = `700 ${14 * u}px ${BODY}`; const lines = wrapLines(g, fr.toast, 460 * u), w = Math.max(...lines.map(l => g.measureText(l).width)) + 28 * u, h = lines.length * 19 * u + 16 * u;
-    rrect(g, W / 2 - w / 2, 54 * u, w, h, 10 * u, 'rgba(30,42,48,0.86)'); g.fillStyle = '#FFFFFF'; g.textAlign = 'center'; g.textBaseline = 'top';
-    lines.forEach((l, i) => g.fillText(l, W / 2, 62 * u + i * 19 * u)); g.restore();
-  }
-  // crosshair, prompt, progress
-  g.fillStyle = 'rgba(30,42,48,0.55)'; g.beginPath(); g.arc(W / 2, H / 2, 3 * u, 0, 7); g.fill();
-  if (fr.act !== null) {
-    const w = 220 * u, x = W / 2 - w / 2, y = H * 0.62;
-    rrect(g, x, y, w, 12 * u, 6 * u, 'rgba(255,255,255,0.85)'); rrect(g, x, y, w * clamp(fr.act, 0, 1), 12 * u, 6 * u, '#2950B8');
-    g.font = `700 ${13 * u}px ${BODY}`; g.textAlign = 'center'; g.fillStyle = '#1E2A30'; g.textBaseline = 'bottom'; g.fillText(cap(fr.actLabel || ''), W / 2, y - 5 * u); g.textAlign = 'left';
-  } else if (fr.prompt) {
-    g.save(); g.font = `700 ${14 * u}px ${BODY}`; const w = g.measureText(fr.prompt).width + 30 * u, y = H * 0.62;
-    rrect(g, W / 2 - w / 2, y, w, 32 * u, 16 * u, 'rgba(255,255,255,0.92)'); g.fillStyle = '#1E2A30'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(fr.prompt, W / 2, y + 16.5 * u); g.restore();
-  }
-  // subtitles
-  if (fr.subs.length) {
-    g.save(); g.font = `400 ${15 * u}px ${BODY}`; g.textAlign = 'center'; g.textBaseline = 'middle';
-    let y = H - 26 * u;
-    for (let i = fr.subs.length - 1; i >= 0; i--) {
-      const s = fr.subs[i], text = `${s.name}: ${s.text}`, w = Math.min(W - 40 * u, g.measureText(text).width + 24 * u);
-      rrect(g, W / 2 - w / 2, y - 14 * u, w, 28 * u, 6 * u, 'rgba(10,14,16,0.72)');
-      g.fillStyle = '#FFFFFF'; g.fillText(text, W / 2, y + 0.5, W - 60 * u); y -= 34 * u;
-    }
-    g.restore();
-  }
-  // help offer
-  if (fr.offer) {
-    g.save(); g.font = `400 ${14 * u}px ${BODY}`; const lines = wrapLines(g, `“${fr.offer.text}”`, 380 * u), w = 420 * u, h = 76 * u + lines.length * 19 * u, x = W / 2 - w / 2, y = H * 0.2;
-    rrect(g, x, y, w, h, 12 * u, 'rgba(255,255,255,0.96)', '#C98A12');
-    g.fillStyle = '#A86400'; g.font = `600 ${10.5 * u}px ${MONO}`; g.textBaseline = 'top'; g.fillText(`${fr.offer.name.toUpperCase()} OFFERS TO HELP`, x + 18 * u, y + 14 * u);
-    g.fillStyle = '#1E2A30'; g.font = `400 ${14 * u}px ${BODY}`; lines.forEach((l, i) => g.fillText(l, x + 18 * u, y + 34 * u + i * 19 * u));
-    g.font = `700 ${13 * u}px ${BODY}`; g.fillStyle = '#2950B8'; g.fillText('Y  Yes please        N  No thanks', x + 18 * u, y + h - 26 * u);
-    g.restore();
-  }
-  if (fr.blank) {
-    g.fillStyle = 'rgba(240,242,241,0.55)'; g.fillRect(0, 0, W, H);
-    g.save(); g.font = `700 ${30 * u}px ${DISPLAY}`; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillStyle = '#1E2A30'; g.fillText('Wait… what was I doing?', W / 2, H * 0.4); g.restore();
-  }
-}
-
-// ---------- Live loop and input ----------
-const fpCanvas = $('#fp'), fctx = fpCanvas.getContext('2d');
-function sizeCanvas(cv) { const w = Math.min(1150, Math.round((cv.clientWidth || 900) * (window.devicePixelRatio || 1))); const h = Math.round(w * 10 / 16); if (cv.width !== w || cv.height !== h) { cv.width = w; cv.height = h; } }
-const KEYMAP = { ArrowUp: 'fwd', KeyW: 'fwd', ArrowDown: 'back', KeyS: 'back', ArrowLeft: 'left', KeyA: 'left', ArrowRight: 'right', KeyD: 'right' };
-const typing = () => { const el = document.activeElement; return el && /^(INPUT|SELECT|TEXTAREA)$/.test(el.tagName) && el.type !== 'checkbox' && el.type !== 'range'; };
-window.addEventListener('keydown', e => {
-  if (mode !== 'playing' || typing()) return;
-  if (KEYMAP[e.code]) { P.keys[KEYMAP[e.code]] = true; e.preventDefault(); return; }
-  if (e.repeat) return;
-  if (e.code === 'KeyE' || e.code === 'Space') { e.preventDefault(); tryUse(); }
-  else if (e.code === 'KeyR') remind();
-  else if (e.code === 'KeyH') askForHelp();
-  else if (e.code === 'KeyY') acceptHelp();
-  else if (e.code === 'KeyN') declineHelp(false);
-  else if (e.code === 'KeyP') togglePause();
-});
-window.addEventListener('keyup', e => { if (P && KEYMAP[e.code]) P.keys[KEYMAP[e.code]] = false; });
-window.addEventListener('blur', () => { if (P) P.keys = {}; });
-let dragX = null;
-fpCanvas.addEventListener('pointerdown', e => { dragX = e.clientX; fpCanvas.focus(); try { fpCanvas.setPointerCapture(e.pointerId); } catch (_) {} });
-fpCanvas.addEventListener('pointermove', e => { if (dragX === null || mode !== 'playing' || !P) return; P.drag += (e.clientX - dragX) * 0.006; dragX = e.clientX; });
-fpCanvas.addEventListener('pointerup', () => { dragX = null; });
-fpCanvas.addEventListener('pointercancel', () => { dragX = null; });
-document.querySelectorAll('[data-hold]').forEach(b => {
-  const k = b.dataset.hold, set = v => { if (P && mode === 'playing') P.keys[k] = v; };
-  b.addEventListener('pointerdown', e => { e.preventDefault(); set(true); });
-  for (const ev of ['pointerup', 'pointerleave', 'pointercancel']) b.addEventListener(ev, () => set(false));
-});
-const ACTIONS = { use: tryUse, remind, help: askForHelp };
-document.querySelectorAll('[data-act]').forEach(b => b.addEventListener('click', () => ACTIONS[b.dataset.act]()));
-function togglePause() { if (mode !== 'playing') return; paused = !paused; running = !paused; renderPanel(); }
-
-// ---------- Side panel ----------
-const chips = (set, defs) => [...set].map(k => `<span class="chip-s">${esc(defs.find(d => d.k === k).name)}</span>`).join('') || '<span class="muted">None</span>';
-function optionList(defs, set, prefix) {
-  return defs.map(d => `<label class="opt" for="${prefix}-${d.k}"><input type="checkbox" id="${prefix}-${d.k}" data-${prefix}="${d.k}"${set.has(d.k) ? ' checked' : ''}><b>${esc(d.name)}</b><span>${esc(d.desc)}</span></label>`).join('');
-}
-function compareTable() {
-  if (!attempts.length) return '';
-  return `<h3>Your attempts</h3><div class="table-wrap"><table class="cmp"><thead><tr><th>#</th><th>Supports</th><th>Time</th><th>On your own</th><th>Help</th><th>Setbacks</th></tr></thead><tbody>${attempts.map(a =>
-    `<tr><td>${a.n}</td><td class="wrap">${a.cfg.sup.size ? [...a.cfg.sup].map(k => esc(SUP.find(s => s.k === k).name)).join(', ') : 'None'}</td><td>${fmt(a.time)}</td><td><span class="bar"><i style="width:${a.indep}%"></i></span>${a.indep}%</td><td>${a.stats.accepted}</td><td>${a.setbacks}</td></tr>`).join('')}</tbody></table></div>`;
-}
-function renderPanel() {
-  const el = $('#panel');
-  if (mode === 'setup') {
-    el.innerHTML = `<p class="eyebrow">Set up an attempt</p><h2>Step into someone else’s shoes</h2>
-      <p class="hint">Pick a challenge and a job, then do the job yourself in the shared room. Ada, Ben and Chen will notice if you struggle and may offer help.</p>
-      <label class="lbl" for="jobSel">Job</label><select id="jobSel">${JOBS.map(j => `<option value="${j}"${cfg.job === j ? ' selected' : ''}>${TASKS[j].name}</option>`).join('')}</select>
-      <h3>Your challenge</h3><div class="opts">${optionList(CH, cfg.ch, 'ch')}</div>
-      <div class="seg strength" role="group" aria-label="Strength">${Object.keys(STRENGTH).map(s => `<button type="button" data-str="${s}" aria-pressed="${cfg.strength === s}">${cap(s)}</button>`).join('')}</div>
-      <h3>Adapt the room</h3><div class="opts">${optionList(SUP, cfg.sup, 'sup')}</div>
-      <div class="row"><button class="btn primary" type="button" id="startBtn">Start attempt</button></div>${compareTable()}`;
-  } else if (mode === 'playing') {
-    el.innerHTML = `<p class="eyebrow">Attempt ${attempt.n} · ${esc(attempt.def.name)}${paused ? ' · paused' : ''}</p>
-      <div id="offerBox">${P.offer ? `<div class="offer"><b>${esc(P.offer.npc.name)} offers to help</b><p>“${esc(P.offer.shown)}”</p><div class="row"><button class="btn primary" type="button" id="yesBtn">Yes please (Y)</button><button class="btn" type="button" id="noBtn">No thanks (N)</button></div></div>` : ''}</div>
-      <div class="row"><button class="btn" type="button" data-act2="remind">Remind me (R)</button><button class="btn" type="button" data-act2="help">Ask for help (H)</button><button class="btn" type="button" id="pauseBtn">${paused ? 'Resume' : 'Pause'} (P)</button><button class="btn ghost" type="button" id="quitBtn">Stop attempt</button></div>
-      <h3>Your challenge</h3><div class="chips">${chips(attempt.cfg.ch, CH)}</div><p class="hint">${cap(attempt.cfg.strength)} strength</p>
-      <h3>Room supports</h3><div class="chips">${chips(attempt.cfg.sup, SUP)}</div>
-      <h3>Controls</h3><ul class="keys"><li><kbd>W</kbd><kbd>S</kbd> or <kbd>↑</kbd><kbd>↓</kbd> walk</li><li><kbd>A</kbd><kbd>D</kbd> or <kbd>←</kbd><kbd>→</kbd> turn, or drag the view</li><li><kbd>E</kbd> or <kbd>Space</kbd> use what is in front of you</li><li><kbd>Y</kbd> / <kbd>N</kbd> answer an offer of help</li></ul>`;
   } else {
-    const a = attempts[attempts.length - 1], st = a.stats;
-    const tips = [...new Set([...a.cfg.ch].flatMap(c => SUGGEST[c] || []))].filter(s => !a.cfg.sup.has(s));
-    const rows = [['Bumps', st.bumps], ['Wrong places', st.wrong], ['Slips', st.fumbles], ['Steps out of order', st.planfails], ['Distractions', st.distractions], ['Blank moments', st.forgets], ['Missed on the left', st.unseen], ['Jumbled speech', st.misheard], ['Help offered', st.offers], ['Help accepted', st.accepted]].filter(r => r[1]);
-    el.innerHTML = `<p class="eyebrow">Attempt ${a.n} ${a.success ? 'complete' : 'stopped'} · ${fmt(a.time)}</p>
-      <h2>${a.indep}% on your own</h2><p>${a.alone} of ${a.steps.length} steps done independently${a.doneN - a.alone ? `, ${a.doneN - a.alone} with help` : ''}${a.success ? '' : `, ${a.steps.length - a.doneN} not done`}.</p>
-      ${rows.length ? `<ul class="stat-list">${rows.map(r => `<li><span>${r[0]}</span><b>${r[1]}</b></li>`).join('')}</ul>` : ''}
-      <h3>Adapt the room for the next attempt</h3>${tips.length ? `<p class="hint">Suggested for your challenge: ${tips.map(t => `<b>${esc(SUP.find(s => s.k === t).name)}</b>`).join(', ')}.</p>` : ''}
-      <div class="opts">${optionList(SUP, cfg.sup, 'sup')}</div>
-      <div class="row"><button class="btn primary" type="button" id="againBtn">Try again with these supports</button><button class="btn" type="button" id="replayBtn">Watch the replay</button><button class="btn ghost" type="button" id="setupBtn">Change challenge</button></div>
-      ${compareTable()}`;
+    G.wrong.add(k);
+    G.msg = `Not quite. Keep watching ${esc(a.name)} and compare them with Ada and Ben.`; G.msgKind = 'bad';
   }
-  const on = (id, fn) => { const b = el.querySelector('#' + id); if (b) b.addEventListener('click', fn); };
-  el.querySelectorAll('[data-ch]').forEach(c => c.addEventListener('change', () => { c.checked ? cfg.ch.add(c.dataset.ch) : cfg.ch.delete(c.dataset.ch); }));
-  el.querySelectorAll('[data-sup]').forEach(c => c.addEventListener('change', () => { c.checked ? cfg.sup.add(c.dataset.sup) : cfg.sup.delete(c.dataset.sup); refreshSetupView(); }));
-  el.querySelectorAll('[data-str]').forEach(b => b.addEventListener('click', () => { cfg.strength = b.dataset.str; el.querySelectorAll('[data-str]').forEach(x => x.setAttribute('aria-pressed', String(x === b))); }));
-  const js = el.querySelector('#jobSel'); if (js) js.addEventListener('change', () => { cfg.job = js.value; });
-  el.querySelectorAll('[data-act2]').forEach(b => b.addEventListener('click', () => { ACTIONS[b.dataset.act2](); fpCanvas.focus(); }));
-  on('startBtn', startAttempt); on('againBtn', startAttempt);
-  on('setupBtn', () => { mode = 'setup'; running = true; setupRoom(cfg.sup.has('clear')); refreshSetupView(); renderPanel(); });
-  on('replayBtn', () => $('#replay').scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' }));
-  on('yesBtn', acceptHelp); on('noBtn', () => declineHelp(false)); on('pauseBtn', togglePause);
-  on('quitBtn', () => endAttempt(false));
+  render();
 }
-function refreshSetupView() {
-  if (mode === 'playing') return;
-  supports.clear = cfg.sup.has('clear'); rebuildObs();
-  AVsetup = makeAV({ ch: new Set(), sup: cfg.sup, strength: 'mild' }, 1);
+function choosePart(part) {
+  if (G.step !== 2) return;
+  G.tries2++;
+  const c = CASES[G.key], pp = PARTS[part];
+  if (c.answers.includes(part)) {
+    const p = ptsFor(G.tries2); G.pts += p; G.score += p;
+    G.step = 3; game.solved = true;
+    $('#brainView').innerHTML = brainSVG(c.region, true);
+  } else {
+    G.miss.add(part);
+    const el = $('#brainView').querySelector(`[data-part="${part}"]`); if (el) el.classList.add('miss');
+    G.msg = `That’s the ${esc(pp.name)}. It mainly handles ${esc(pp.role)}. Try another spot.`; G.msgKind = 'bad';
+  }
+  render();
 }
+function pickerSVG() {
+  const p = 'pk' + (svgN++);
+  const part = (k, cls = '') => {
+    const s = PARTS[k], attrs = `class="part${cls}" data-part="${k}" tabindex="0" role="button" aria-label="${esc(s.name)}"`;
+    return s.ell ? `<ellipse cx="${s.ell[0]}" cy="${s.ell[1]}" rx="${s.ell[2]}" ry="${s.ell[3]}" transform="rotate(${s.ell[4]} ${s.ell[0]} ${s.ell[1]})" ${attrs}/>` : `<path d="${s.d}" ${attrs}/>`;
+  };
+  return `<svg class="brain picker" viewBox="-20 -20 660 470" role="group" aria-label="Side view of the brain. Choose a part.">` +
+    `<defs><radialGradient id="${p}g" cx="0.38" cy="0.3" r="0.8"><stop offset="0" style="stop-color:var(--brain-hi)"/><stop offset="1" style="stop-color:var(--brain-lo)"/></radialGradient>` +
+    `<clipPath id="${p}c"><path d="${BR.cer}"/></clipPath><clipPath id="${p}k"><path d="${BR.cbl}"/></clipPath></defs>` +
+    `<path d="${BR.stem}" fill="url(#${p}g)" class="part-base"/>${part('stem')}` +
+    `<path d="${BR.cbl}" fill="url(#${p}g)"/><g clip-path="url(#${p}k)">${BR.folia.map(d => `<path d="${d}" class="sulc"/>`).join('')}</g>${part('cerebellum')}<path d="${BR.cbl}" class="edge"/>` +
+    `<path d="${BR.cer}" fill="url(#${p}g)"/><g clip-path="url(#${p}c)">` +
+    Object.keys(BR.lobes).map(k => `<path d="${BR.lobes[k]}" class="lobe" style="fill:var(--lobe-${k})"/>`).join('') +
+    BR.sulci.map(d => `<path d="${d}" class="sulc"/>`).join('') + `<path d="${BR.sylvian}" class="sulc big"/>` +
+    `<ellipse cx="250" cy="100" rx="170" ry="46" fill="#FFFFFF" opacity="0.12"/>` +
+    ['prefrontal', 'motor', 'parietal', 'occipital', 'temporal', 'broca', 'wernicke'].map(k => part(k)).join('') +
+    `</g><path d="${BR.cer}" class="edge"/>${part('thalamus', ' deep')}${part('hippocampus', ' deep')}` +
+    `<text x="22" y="300" class="orient" text-anchor="middle">FRONT</text><text x="590" y="300" class="orient" text-anchor="middle">BACK</text></svg>`;
+}
+function latestClue(a) {
+  return LOG.find(e => e.id === a.id && (e.kind in blank() || (e.kind === 'say' && e.lang)));
+}
+function render() {
+  $('#sRound').textContent = G.round; $('#sScore').textContent = G.score;
+  const a = caseAgent(), nm = esc(a ? a.name : 'them'), c = CASES[G.key];
+  const steps = `<div class="steps"><span class="step ${G.step === 1 ? 'on' : 'done'}">1 · Difficulty</span><span class="step ${G.step === 2 ? 'on' : G.step > 2 ? 'done' : ''}">2 · Brain area</span></div>`;
+  const msg = G.msg ? `<p class="msg ${G.msgKind}">${G.msg}</p>` : '';
+  let html = steps;
+  if (G.step === 1) {
+    html += `<h2>What is ${nm} finding hard?</h2><p>${nm} has the dashed ring and does every job as a team with Ada. When ${nm} gets stuck, Ada takes over that step. Ada and Ben have no difficulties, so compare them.</p>${msg}<div class="choices">` +
+      Object.entries(CASES).map(([k, v]) => `<button type="button" class="choice${G.wrong.has(k) ? ' wrong' : ''}" data-choice="${k}"${G.wrong.has(k) ? ' disabled' : ''}><b>${v.label}</b><small>${v.small}</small></button>`).join('') +
+      `</div><div class="row"><button class="btn ghost" type="button" id="hintBtn">Show a clue</button><button class="btn ghost" type="button" id="skipBtn">Skip this case</button></div>`;
+  } else if (G.step === 2) {
+    html += `${msg}<h2>Where in the brain is it?</h2><p>Click the part of the brain that handles ${esc(c.label.toLowerCase())}. The dashed shapes sit deep inside.</p>` +
+      `<div class="row"><button class="btn ghost" type="button" id="hint2Btn">Show a hint</button></div>`;
+  } else {
+    const r = REGIONS[c.region];
+    const clues = LOG.filter(e => e.id === a.id && (e.kind === G.key || (G.key === 'language' && e.kind === 'say' && e.lang))).slice(0, 3);
+    html += `<p class="eyebrow">Case ${G.round} solved · +${G.pts} point${G.pts === 1 ? '' : 's'}</p><h2>${esc(r.name)}</h2><p>${esc(r.role)}</p>` +
+      `<h3>Clues ${nm} gave</h3><ul>${clues.length ? clues.map(e => `<li>${e.kind === 'say' ? `said “${esc(e.text)}”` : esc(e.text)}</li>`).join('') : `<li>${esc(r.signs)}</li>`}</ul>` +
+      `<h3>Good to know</h3><p style="font-size:13px;color:var(--muted)">${esc(r.note)}${G.key === 'motor' ? ' Choosing the motor cortex also counts.' : ''}</p>` +
+      `<div class="row"><button class="btn primary" type="button" id="nextBtn">Next case</button></div>`;
+  }
+  const panel = $('#panel'); panel.innerHTML = html;
+  panel.querySelectorAll('[data-choice]').forEach(b => b.addEventListener('click', () => chooseDifficulty(b.dataset.choice)));
+  const on = (id, fn) => { const el = panel.querySelector('#' + id); if (el) el.addEventListener('click', fn); };
+  on('nextBtn', newCase); on('skipBtn', newCase);
+  on('hintBtn', () => { const e = latestClue(a); G.msg = e ? `Clue: ${nm} ${e.kind === 'say' ? `said “${esc(e.text)}”` : esc(e.text)}.` : `Nothing yet. Give ${nm} a few more seconds.`; G.msgKind = ''; render(); });
+  on('hint2Btn', () => { G.msg = `Hint: ${esc(c.hint)}`; G.msgKind = ''; render(); });
+}
+function refreshStatus() {
+  const a = caseAgent(); if (!a || G.step !== 1) return;
+  const T = a.run && a.run.team, p = T && teamPartner(a);
+  const team = T ? ` <span class="muted">· Team job${p ? ` with ${esc(p.name)}` : ''}: ${esc(T.def.name)}, ${T.def.steps.filter(st => T.done.has(st.verb)).length} of ${T.def.steps.length} steps done</span>` : '';
+  $('#status').innerHTML = `<span class="dot" style="background:${a.color}"></span><span><b>${esc(a.name)}</b>: ${esc(describe(a))}${team}</span>`;
+}
+$('#speedBtn').addEventListener('click', () => { speed = speed === 1 ? 2 : speed === 2 ? 4 : 1; $('#speedBtn').textContent = `Speed ${speed}×`; });
 
-// ---------- Replay ----------
-const rCanvas = $('#fpReplay'), rctx = rCanvas.getContext('2d');
-const R_ = { i: -1, t: 0, playing: false, speed: 1, lastDrawn: -1 };
-function frameAt(at, t) {
-  const fr = at.frames; let lo = 0, hi = fr.length - 1;
-  while (lo < hi) { const mid = (lo + hi + 1) >> 1; if (fr[mid].t <= t) lo = mid; else hi = mid - 1; }
-  return fr[lo];
-}
-function loadReplay(i) {
-  R_.i = i; R_.t = 0; R_.playing = false; R_.lastDrawn = -1;
-  const at = attempts[i];
-  $('#replay').hidden = false;
-  $('#rAttempt').innerHTML = attempts.map((a, j) => `<option value="${j}"${j === i ? ' selected' : ''}>Attempt ${a.n}: ${esc(a.def.name)}${a.cfg.sup.size ? ' with supports' : ''}</option>`).join('');
-  const rT = $('#rTime'); rT.max = String(Math.max(0.1, at.time)); rT.value = '0';
-  $('#rPlay').textContent = 'Play';
-  $('#rMarks').innerHTML = at.events.filter(e => e.kind !== 'misheard' && e.kind !== 'step').map(e => `<button type="button" class="mark" style="left:${(e.t / Math.max(0.1, at.time) * 100).toFixed(2)}%;background:var(--t-${e.tag === 'done' ? 'done' : e.tag === 'general' ? 'support' : e.tag})" data-t="${e.t}" title="${esc(fmt(e.t) + ' ' + e.actual)}" aria-label="${esc(fmt(e.t) + ': ' + e.actual)}"></button>`).join('');
-  $('#rMarks').querySelectorAll('[data-t]').forEach(b => b.addEventListener('click', () => seek(+b.dataset.t - 0.5)));
-  $('#rEvents').innerHTML = at.events.map((e, j) => `<tr data-j="${j}"><td><button type="button" class="tlink" data-t="${e.t}">${fmt(e.t)}</button></td><td><span class="tag" style="background:var(--t-${e.tag === 'done' ? 'done' : e.tag === 'general' ? 'support' : e.tag})">${KIND[e.tag] || e.tag}</span>${esc(e.actual)}</td><td>${esc(e.perceived)}</td></tr>`).join('');
-  $('#rEvents').querySelectorAll('.tlink').forEach(b => b.addEventListener('click', () => seek(+b.dataset.t - 0.5)));
-  $('#rSummary').textContent = `${at.def.name} · ${[...at.cfg.ch].map(k => CH.find(c => c.k === k).name).join(', ') || 'No challenge'} (${at.cfg.strength}) · supports: ${[...at.cfg.sup].map(k => SUP.find(s => s.k === k).name).join(', ') || 'none'}`;
-}
-function seek(t) { const at = attempts[R_.i]; if (!at) return; R_.t = clamp(t, 0, at.time); $('#rTime').value = String(R_.t); R_.lastDrawn = -1; }
-$('#rTime').addEventListener('input', e => { R_.t = +e.target.value; R_.lastDrawn = -1; });
-$('#rPlay').addEventListener('click', () => { const at = attempts[R_.i]; if (!at) return; if (R_.t >= at.time - 0.05) R_.t = 0; R_.playing = !R_.playing; $('#rPlay').textContent = R_.playing ? 'Pause' : 'Play'; });
-$('#rAttempt').addEventListener('change', e => loadReplay(+e.target.value));
-document.querySelectorAll('[data-rspeed]').forEach(b => b.addEventListener('click', () => { R_.speed = +b.dataset.rspeed; document.querySelectorAll('[data-rspeed]').forEach(x => x.setAttribute('aria-pressed', String(x === b))); }));
-function drawReplay() {
-  const at = attempts[R_.i]; if (!at) return;
-  const fr = frameAt(at, R_.t);
-  // first-person pane: what the player saw and heard
-  sizeCanvas(rCanvas); renderFP(rctx, rCanvas.width, rCanvas.height, fr, at.AV);
-  // room pane: what actually happened
-  const saveClear = supports.clear, saveObs = OBS;
-  supports.clear = at.cfg.sup.has('clear'); OBS = at.AV.obs;
-  ctx.setTransform(dpr * scale, 0, 0, dpr * scale, 0, 0);
-  drawRoom();
-  supports.clear = saveClear; OBS = saveObs;
-  if (at.AV.s.spatial) {
-    ctx.save(); ctx.setLineDash([4, 4]); ctx.strokeStyle = T.accent; ctx.lineWidth = 1.5; ctx.globalAlpha = 0.85;
-    for (const r of at.AV.rects) if (!r.wall) ctx.strokeRect(r.x0, r.y0, r.x1 - r.x0, r.y1 - r.y0);
-    for (const kk in ITEM) { const I = ITEM[kk], o = at.AV.stOff[kk]; if (Math.hypot(o.x, o.y) < 6) continue; ctx.beginPath(); ctx.arc(I.x + o.x, I.y + o.y, 7, 0, 7); ctx.stroke(); ctx.beginPath(); ctx.moveTo(I.x, I.y); ctx.lineTo(I.x + o.x, I.y + o.y); ctx.stroke(); }
-    ctx.restore();
-    label('DASHED = WHERE THINGS SEEMED TO BE', 480, 576, { color: T.accent });
-  }
-  // the player's trail and view cone
-  ctx.save(); ctx.strokeStyle = T.ink; ctx.globalAlpha = 0.35; ctx.lineWidth = 2; ctx.setLineDash([1, 5]); ctx.lineCap = 'round'; ctx.beginPath();
-  let started = false; for (const f of at.frames) { if (f.t > R_.t) break; if (!started) { ctx.moveTo(f.cam.x, f.cam.y); started = true; } else ctx.lineTo(f.cam.x, f.cam.y); }
-  ctx.stroke(); ctx.restore();
-  const c = fr.cam;
-  ctx.save(); ctx.globalAlpha = 0.12; ctx.fillStyle = T.ink; ctx.beginPath(); ctx.moveTo(c.x, c.y); ctx.arc(c.x, c.y, 170, c.h - FOV / 2, c.h + FOV / 2); ctx.closePath(); ctx.fill();
-  if (at.AV.F) { ctx.globalAlpha = 0.1 + at.AV.F * 0.25; ctx.beginPath(); ctx.moveTo(c.x, c.y); ctx.arc(c.x, c.y, 170, c.h - FOV / 2, c.h - 0.1); ctx.closePath(); ctx.fill(); }
-  ctx.restore();
-  if (fr.beacon) { const I = ITEM[fr.beacon]; ctx.save(); ctx.strokeStyle = '#E08A00'; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(I.x, I.y, 16, 0, 7); ctx.stroke(); ctx.restore(); }
-  for (const e of at.events) {
-    if (e.t > R_.t || e.kind === 'misheard' || e.kind === 'step') continue;
-    const col = T['t-' + (e.tag === 'done' ? 'support' : e.tag === 'general' ? 'support' : e.tag)] || T.muted;
-    ctx.save(); ctx.globalAlpha = R_.t - e.t < 2 ? 1 : 0.45; ctx.fillStyle = col; ctx.strokeStyle = T.surface; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(e.x, e.y, 5, 0, 7); ctx.fill(); ctx.stroke(); ctx.restore();
-  }
-  const people = fr.npcs.map(n => ({ ...n, timer: 1 - n.p, actDur: 1, run: n.carry ? CARRY_RUN : null, bubble: null, lx: n.x, ly: n.y }));
-  const you = { id: 0, name: 'You', color: '#1F2A30', x: c.x, y: c.y, h: c.h, state: fr.act !== null ? 'acting' : 'walking', timer: 1 - (fr.act || 0), actDur: 1, moveAmt: 0, gait: 0, run: fr.carry ? CARRY_RUN : null, bubble: null, lx: c.x, ly: c.y };
-  people.concat([you]).sort((a, b) => a.y - b.y).forEach(drawAgent);
-  for (const n of fr.npcs) if (n.say) drawBubble({ x: n.x, y: n.y, color: n.color, bubble: { text: n.say, t: 2, max: 3 } });
-  // highlight the events around this moment
-  $('#rClock').textContent = `${fmt(R_.t)} / ${fmt(at.time)}`;
-  $('#rEvents').querySelectorAll('tr').forEach(tr => { const e = at.events[+tr.dataset.j]; tr.classList.toggle('now', !!e && Math.abs(e.t - R_.t) < 1.5); });
-}
-
-// ---------- Main loop ----------
-let lastNow = performance.now(), recClock = 0, uiClock = 0, idlePan = 0;
+newCase();
+let last = performance.now(), uiT = 0;
 function frame(now) {
-  const dt = Math.min(0.1, (now - lastNow) / 1000); lastNow = now;
-  if (running) {
-    let sdt = dt;
-    while (sdt > 1e-6) {
-      const s = Math.min(0.033, sdt); tick(s);
-      if (mode === 'playing') { updatePlayer(s); recClock += s; if (recClock >= 0.1) { recClock = 0; if (attempt && !attempt.ended) attempt.frames.push(makeFrame()); } }
-      sdt -= s;
-    }
-  }
-  animNpcs();
-  sizeCanvas(fpCanvas);
-  if (mode !== 'playing') { idlePan += dt; if (P) { P.h = Math.sin(idlePan * 0.15) * 0.6; } }
-  const AV = mode === 'playing' || mode === 'done' && attempt ? attempt.AV : AVsetup;
-  const fr = makeFrame();
-  renderFP(fctx, fpCanvas.width, fpCanvas.height, fr, AV);
-  if (mode !== 'playing') {
-    const W = fpCanvas.width, H = fpCanvas.height, u = W / 900;
-    fctx.fillStyle = 'rgba(20,28,32,0.45)'; fctx.fillRect(0, 0, W, H);
-    fctx.save(); fctx.textAlign = 'center'; fctx.fillStyle = '#FFFFFF'; fctx.font = `700 ${30 * u}px ${DISPLAY}`;
-    fctx.fillText(mode === 'done' ? (attempts[attempts.length - 1].success ? 'Job done!' : 'Attempt stopped') : 'Choose a challenge, then press Start', W / 2, H * 0.45);
-    fctx.font = `400 ${15 * u}px ${BODY}`; fctx.fillText(mode === 'done' ? 'See how it went, adapt the room, and watch the replay below.' : 'You will see the room through your own eyes.', W / 2, H * 0.45 + 30 * u);
-    fctx.restore();
-  }
-  if (R_.i >= 0 && !$('#replay').hidden) {
-    const at = attempts[R_.i];
-    if (R_.playing) { R_.t += dt * R_.speed; if (R_.t >= at.time) { R_.t = at.time; R_.playing = false; $('#rPlay').textContent = 'Play'; } $('#rTime').value = String(R_.t); }
-    if (R_.t !== R_.lastDrawn) { R_.lastDrawn = R_.t; drawReplay(); }
-  }
-  uiClock += dt;
-  if (uiClock > 0.5 && mode === 'playing' && P.offer && !$('#yesBtn')) { uiClock = 0; renderPanel(); }
+  const dt = Math.min(0.1, (now - last) / 1000); last = now;
+  if (running) { let sdt = dt * speed; while (sdt > 1e-6) { const s = Math.min(0.033, sdt); tick(s); sdt -= s; } }
+  if (!$('#roomView').hidden) draw();
+  uiT += dt; if (uiT > 0.25) { uiT = 0; refreshStatus(); }
   requestAnimationFrame(frame);
 }
-new ResizeObserver(() => { R_.lastDrawn = -1; }).observe($('#room'));
-setupRoom(false); refreshSetupView(); renderPanel();
-globalThis.__fp = { cfg, startAttempt, endAttempt, tryUse, acceptHelp, askForHelp, P: () => P, attempt: () => attempt, attempts, drawReplay, loadReplay, R_ };
 requestAnimationFrame(frame);
 })();
 </script>
