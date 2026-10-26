@@ -114,6 +114,27 @@ canvas#room{display:block;width:100%;min-width:600px;aspect-ratio:960/600;backgr
 .row{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
 .foot{margin-top:18px;font-size:13px;color:var(--muted)}
 .foot a{color:var(--accent)}
+.modal{position:fixed;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;background:rgba(12,22,26,.55);padding-top:max(16px, env(safe-area-inset-top, 0px));padding-bottom:max(16px, env(safe-area-inset-bottom, 0px));padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px))}
+.pop-card{background:var(--surface);border:1px solid var(--line);border-radius:14px;width:100%;max-width:640px;max-height:100%;overflow:auto;box-shadow:0 24px 60px rgba(0,0,0,.3)}
+.pop-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 18px;border-bottom:1px solid var(--line)}
+.pop-head h2{font:700 22px var(--f-display);margin:0}
+.pop-art{padding:16px 18px 4px;background:radial-gradient(circle at 50% 48%, var(--hl-soft), transparent 62%), var(--surface-2)}
+.pop-text{padding:14px 18px 18px}
+.pop-text p{margin:0 0 10px;max-width:60ch}
+.pop-note{font-size:14px;color:var(--muted)}
+.brain .mk-ring{fill:none;stroke:#D8372B;stroke-width:3;animation:mkpulse 1.6s ease-out infinite;transform-box:fill-box;transform-origin:center}
+.brain .mk-dot{fill:#D8372B;stroke:#FFFFFF;stroke-width:3}
+.brain .mk-sym{font:700 18px var(--f-display);fill:#FFFFFF}
+.brain .mk-q{font:700 150px var(--f-display);fill:var(--muted);opacity:.55}
+@keyframes mkpulse{0%{transform:scale(.6);opacity:1}100%{transform:scale(1.5);opacity:0}}
+@media (prefers-reduced-motion: reduce){.brain .mk-ring{animation:none}}
+.add-bar{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;padding:10px 14px;border-top:1px solid var(--line)}
+.add-lbl{font:600 11px var(--f-mono);letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
+.add-btns{display:flex;flex-wrap:wrap;gap:6px;flex:1 1 auto}
+.el-btn{padding:7px 10px}
+.el-btn[aria-pressed="true"]{border-color:var(--hl-line);background:var(--hl-soft);box-shadow:inset 0 0 0 1px var(--hl-line)}
+.add-hint{flex-basis:100%;margin:0;font-size:13px;color:var(--muted)}
+canvas#room.placing{cursor:crosshair}
 .muted{color:var(--muted)}
 .picker .part{fill:transparent;cursor:pointer;transition:fill-opacity .15s}
 .picker .part:hover,.picker .part:focus-visible{fill:var(--hl);fill-opacity:.5;outline:none}
@@ -142,12 +163,27 @@ canvas#room{display:block;width:100%;min-width:600px;aspect-ratio:960/600;backgr
           <span class="status" id="status" aria-live="off"></span>
           <button class="btn" type="button" id="speedBtn">Speed 1×</button>
         </div>
+        <div class="add-bar">
+          <span class="add-lbl">Add to the room</span>
+          <div class="add-btns" id="addBtns"></div>
+          <button class="btn ghost" type="button" id="clearEl">Clear added things</button>
+          <p class="add-hint" id="addHint" aria-live="polite"></p>
+          <p class="add-hint">Tip: click any person to see their brain, with the affected area marked.</p>
+        </div>
       </div>
       <div id="brainView" class="brain-stage" hidden></div>
     </section>
     <aside class="panel" id="panel" aria-live="polite"></aside>
   </div>
   <p class="foot">Want to set the difficulties yourself and compare several people? <a href="lab.html">Open the full lab</a>. These are simplified teaching models, not clinical descriptions.</p>
+</div>
+
+<div class="modal" id="brainPop" hidden role="dialog" aria-modal="true" aria-labelledby="popTitle">
+  <div class="pop-card">
+    <div class="pop-head"><h2 id="popTitle"></h2><button class="btn ghost" type="button" id="popClose">Close</button></div>
+    <div class="pop-art" id="popArt"></div>
+    <div class="pop-text" id="popText"></div>
+  </div>
 </div>
 
 <script>
@@ -245,6 +281,147 @@ const POIS = [
   { x: 30, y: 300, label: 'a noise at the door' },
   { x: 495, y: 300, label: 'something on the table' }
 ];
+// ---------- Things the user can add to the room ----------
+// Each one becomes a conversation topic for people near it; some make noise or move.
+const ELEMENTS = {
+  tv: { name: 'TV', icon: '📺', w: 46, h: 22, block: true, noise: true,
+    wow: ['Oh nice, a TV!', 'Now we can watch the match.'],
+    solo: ['Ooh, the news is on.', 'Is that the weather forecast?'],
+    talk: [["Did you watch the match last night, {name}?", 'I did! What a last-minute goal.'], ['Can we turn the TV down a bit?', 'Sure, it is a bit loud.'], ["What's on TV, {name}?", 'Just the weather. Rain again.']] },
+  radio: { name: 'Radio', icon: '📻', w: 30, h: 20, block: true, noise: true,
+    wow: ['Music! Lovely.', 'Who brought a radio?'],
+    solo: ['La la la…', 'This song again!'],
+    talk: [['I love this song!', 'Me too. Turn it up a little?'], ['Who sings this, {name}?', "No idea, but it's catchy."]] },
+  cat: { name: 'Cat', icon: '🐈', w: 26, h: 14, block: false, moves: true,
+    wow: ['A cat! Where did you come from?', 'Aww, look at the cat.'],
+    solo: ['Hello, kitty!', "Careful, don't step on the cat."],
+    talk: [['Whose cat is this, {name}?', "She just wandered in. Isn't she sweet?"], ['The cat keeps following {other}.', 'Ha, she must like them.'], ['Has anyone fed the cat?', 'I gave her some milk.']] },
+  cake: { name: 'Birthday cake', icon: '🎂', w: 40, h: 40, block: true,
+    wow: ["Ooh, cake! Is it someone's birthday?", 'Birthday cake!'],
+    solo: ['Mmm, cake.', "Don't blow out the candles yet!"],
+    talk: [['Whose birthday is it?', "It's {other}'s! Don't tell them."], ['Can I have a slice of cake, {name}?', 'After we sing happy birthday!'], ['Who baked the cake?', '{other} did. Chocolate inside!']] },
+  fish: { name: 'Fish tank', icon: '🐠', w: 54, h: 26, block: true,
+    wow: ['A fish tank! How relaxing.', 'Oh, fish!'],
+    solo: ['Look at that little fish.', 'The fish look hungry.'],
+    talk: [['Did someone feed the fish, {name}?', 'Yes, this morning.'], ['I like the little orange fish.', "That one's called Bubbles."]] },
+  flowers: { name: 'Flowers', icon: '💐', w: 24, h: 24, block: true,
+    wow: ['Fresh flowers! Lovely.', 'Who brought flowers?'],
+    solo: ['Pretty flowers.', 'Mmm, they smell nice.'],
+    talk: [['These flowers smell lovely.', "They're from {other}'s garden."], ['Should we water the flowers too, {name}?', 'Good idea, after the plant.']] },
+  piano: { name: 'Piano', icon: '🎹', w: 64, h: 30, block: true,
+    wow: ['A piano! Can anyone play?', 'Ooh, a piano.'],
+    solo: ['Plink, plonk.', 'I used to play the piano.'],
+    talk: [['Can you play the piano, {name}?', 'Only one song, and badly!'], ["Let's sing something later.", 'Only if {other} plays.']] }
+};
+const placed = [], sayQueue = [];
+let elN = 1;
+function placeError(key, pt) {
+  const d = ELEMENTS[key];
+  if (placed.length >= 8) return 'You can add up to 8 things. Click one in the room to remove it.';
+  if (blockedAt(pt.x, pt.y, Math.max(d.w, d.h) / 2 + 4)) return 'That spot is taken. Try an open part of the floor.';
+  for (const k in STATIONS) if (Math.hypot(STATIONS[k].x - pt.x, STATIONS[k].y - pt.y) < 46) return `Leave the space in front of the ${STATIONS[k].label} free.`;
+  if (placed.some(q => Math.hypot(q.x - pt.x, q.y - pt.y) < 50)) return 'Too close to something you already added.';
+  return null;
+}
+function addElement(key, x, y) {
+  const def = ELEMENTS[key], q = { id: 'el' + elN++, key, def, x, y, t: simT, nextNoise: simT + 2, tx: x, ty: y, pause: 1, vx: 1 };
+  if (def.block) q.rect = { id: q.id, x: x - def.w / 2, y: y - def.h / 2, w: def.w, h: def.h, label: def.name.toLowerCase() };
+  placed.push(q); refreshObstacles();
+  log(null, 'support', `${def.name} added to the room`);
+  const near = agents.filter(a => !['talking', 'acting'].includes(a.state)).sort((m, n) => Math.hypot(m.x - x, m.y - y) - Math.hypot(n.x - x, n.y - y)).slice(0, 2);
+  near.forEach((a, i) => sayQueue.push({ a, text: def.wow[i % def.wow.length], at: simT + 0.5 + i * 1.8 }));
+  return q;
+}
+function removeElement(q) { placed.splice(placed.indexOf(q), 1); refreshObstacles(); }
+function refreshObstacles() { rebuildObs(); for (const a of agents) if (a.state === 'walking' && a.perceived) planPath(a); }
+function otherName(a, b) { const o = agents.filter(x => x !== a && x !== b); return o.length ? pick(o).name : 'someone'; }
+function topicNear(a, b) {
+  const near = placed.filter(q => Math.min(Math.hypot(q.x - a.x, q.y - a.y), Math.hypot(q.x - b.x, q.y - b.y)) < 240);
+  if (!near.length) return null;
+  const fresh = near.filter(q => simT - q.t < 45);
+  if (!fresh.length && rnd() > 0.75) return null;
+  const q = pick(fresh.length ? fresh : near), pair = pick(q.def.talk);
+  return { q: pair[0], r: pair[1], el: q, other: otherName(a, b) };
+}
+function elementTick(dt) {
+  for (const it of sayQueue.slice()) if (simT >= it.at) { sayQueue.splice(sayQueue.indexOf(it), 1); if (agents.includes(it.a) && it.a.state !== 'talking') say(it.a, it.text); }
+  for (const q of placed) {
+    if (q.def.noise && simT > q.nextNoise) { SPEECH.push({ x: q.x, y: q.y, t: simT, by: -1, name: q.def.name, label: `the ${q.def.name.toLowerCase()}` }); q.nextNoise = simT + 5 + rnd() * 5; }
+    if (q.def.moves) {
+      const d = Math.hypot(q.tx - q.x, q.ty - q.y);
+      if (d > 3) { const st = Math.min(d, 30 * dt); q.vx = q.tx - q.x; q.x += (q.tx - q.x) / d * st; q.y += (q.ty - q.y) / d * st; }
+      else if ((q.pause -= dt) <= 0) {
+        for (let i = 0; i < 12; i++) { const tx = clamp(q.x + (rnd() - 0.5) * 300, 40, 920), ty = clamp(q.y + (rnd() - 0.5) * 300, 40, 560); if (!blockedAt(tx, ty, 10)) { q.tx = tx; q.ty = ty; break; } }
+        q.pause = 1.5 + rnd() * 3.5;
+      }
+    }
+  }
+  for (const a of agents) {
+    if (!['walking', 'idle', 'teamwait', 'waiting'].includes(a.state) || a.bubble || (a.remarkCD || 0) > simT) continue;
+    for (const q of placed) if (Math.hypot(q.x - a.x, q.y - a.y) < 85 && rnd() < 0.5 * dt) { a.remarkCD = simT + 30 + rnd() * 15; say(a, pick(q.def.solo)); break; }
+  }
+}
+function drawElement(key, x, y, q) {
+  const t = simT;
+  ctx.save(); ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  if (key === 'tv') {
+    ctx.fillStyle = '#5A4636'; rr(x - 23, y - 4, 46, 12, 2); ctx.fill();
+    ctx.fillStyle = '#1D2328'; rr(x - 20, y - 31, 40, 27, 3); ctx.fill();
+    ctx.fillStyle = `hsl(${(t * 35) % 360}, 50%, 58%)`; ctx.fillRect(x - 17, y - 28, 34, 20);
+    ctx.fillStyle = 'rgba(255,255,255,0.35)'; ctx.fillRect(x - 17, y - 28, 34, 4);
+  } else if (key === 'radio') {
+    ctx.strokeStyle = '#3B2A24'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(x + 8, y - 10); ctx.lineTo(x + 15, y - 24); ctx.stroke();
+    ctx.fillStyle = '#B5543C'; rr(x - 15, y - 12, 30, 20, 4); ctx.fill();
+    ctx.fillStyle = '#3B2A24'; ctx.beginPath(); ctx.arc(x - 6, y - 2, 5.5, 0, 7); ctx.fill();
+    ctx.fillStyle = '#F2E2C4'; ctx.fillRect(x + 2, y - 7, 9, 4);
+    ctx.font = `700 ${12 * ts}px ${BODY}`; ctx.textAlign = 'center';
+    for (let i = 0; i < 2; i++) { const ph = (t * 0.6 + i * 0.5) % 1; ctx.globalAlpha = 1 - ph; ctx.fillStyle = T.ink; ctx.fillText('♪', x + 6 + i * 8, y - 16 - ph * 22); }
+  } else if (key === 'cat') {
+    const dir = (q && q.vx < 0) ? -1 : 1, moving = q && Math.hypot(q.tx - q.x, q.ty - q.y) > 3, sw = moving ? Math.sin(t * 12) * 2 : 0;
+    ctx.strokeStyle = '#B5652A'; ctx.lineWidth = 2.5;
+    for (const lx of [-6, -2, 4, 8]) { ctx.beginPath(); ctx.moveTo(x + lx * dir, y - 4); ctx.lineTo(x + lx * dir + (lx % 4 ? sw : -sw), y + 3); ctx.stroke(); }
+    ctx.beginPath(); ctx.moveTo(x - 10 * dir, y - 7); ctx.quadraticCurveTo(x - 18 * dir, y - 10, x - 15 * dir, y - 20 + Math.sin(t * 3) * 2); ctx.stroke();
+    ctx.fillStyle = '#E08A3C'; ctx.beginPath(); ctx.ellipse(x, y - 7, 11, 6, 0, 0, 7); ctx.fill();
+    ctx.beginPath(); ctx.arc(x + 10 * dir, y - 12, 5.5, 0, 7); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(x + 6.5 * dir, y - 15); ctx.lineTo(x + 7 * dir, y - 21); ctx.lineTo(x + 10 * dir, y - 17); ctx.moveTo(x + 11 * dir, y - 17); ctx.lineTo(x + 14 * dir, y - 21); ctx.lineTo(x + 14.5 * dir, y - 15); ctx.fill();
+    ctx.fillStyle = '#1E1A18'; ctx.beginPath(); ctx.arc(x + 12 * dir, y - 12.5, 1, 0, 7); ctx.fill();
+  } else if (key === 'cake') {
+    ctx.fillStyle = T.furn; ctx.strokeStyle = T['furn-line']; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(x, y, 20, 0, 7); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#F4C6D4'; ctx.strokeStyle = '#C9839A'; ctx.beginPath(); ctx.arc(x, y, 12, 0, 7); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#FBE3EA'; ctx.beginPath(); ctx.arc(x, y, 7, 0, 7); ctx.fill();
+    for (let i = 0; i < 4; i++) { const an = i / 4 * Math.PI * 2 + 0.4, cx = x + Math.cos(an) * 8, cy = y + Math.sin(an) * 8; ctx.fillStyle = '#5B8FD6'; ctx.fillRect(cx - 1, cy - 5, 2, 5); ctx.fillStyle = '#FFC23D'; ctx.beginPath(); ctx.ellipse(cx, cy - 7 + Math.sin(t * 9 + i) * 0.6, 1.6, 2.6, 0, 0, 7); ctx.fill(); }
+  } else if (key === 'fish') {
+    ctx.fillStyle = 'rgba(110,170,220,0.85)'; ctx.strokeStyle = '#4E7FA6'; ctx.lineWidth = 1.5; rr(x - 27, y - 13, 54, 26, 3); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#E3CF9C'; ctx.fillRect(x - 25.5, y + 7, 51, 4.5);
+    ctx.fillStyle = '#3E8A4B'; for (const px of [-18, 15]) { ctx.beginPath(); ctx.ellipse(x + px, y + 2, 2, 7, 0.2, 0, 7); ctx.fill(); }
+    for (let i = 0; i < 3; i++) {
+      const ph = (t * 0.25 + i * 0.37) % 2, dir = ph < 1 ? 1 : -1, fx = x - 20 + (ph < 1 ? ph : 2 - ph) * 40, fy = y - 6 + i * 5 + Math.sin(t * 2 + i) * 1.5;
+      ctx.fillStyle = i === 1 ? '#F7D046' : '#F28C28'; ctx.beginPath(); ctx.ellipse(fx, fy, 4, 2.4, 0, 0, 7); ctx.fill();
+      ctx.beginPath(); ctx.moveTo(fx - 3.5 * dir, fy); ctx.lineTo(fx - 7 * dir, fy - 2.5); ctx.lineTo(fx - 7 * dir, fy + 2.5); ctx.closePath(); ctx.fill();
+    }
+  } else if (key === 'flowers') {
+    ctx.strokeStyle = '#3E8A4B'; ctx.lineWidth = 1.6;
+    const heads = [[-7, -14, '#E86A92'], [0, -19, '#F7D046'], [7, -13, '#FFFFFF']];
+    for (const [hx, hy] of heads) { ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + hx, y + hy); ctx.stroke(); }
+    for (const [hx, hy, c] of heads) { ctx.fillStyle = c; for (let i = 0; i < 5; i++) { const an = i / 5 * Math.PI * 2; ctx.beginPath(); ctx.arc(x + hx + Math.cos(an) * 3, y + hy + Math.sin(an) * 3, 2.3, 0, 7); ctx.fill(); } ctx.fillStyle = '#C98A12'; ctx.beginPath(); ctx.arc(x + hx, y + hy, 1.6, 0, 7); ctx.fill(); }
+    ctx.fillStyle = '#5E8FB8'; rr(x - 6, y - 2, 12, 12, 4); ctx.fill();
+  } else if (key === 'piano') {
+    ctx.fillStyle = '#2E2A28'; rr(x - 32, y - 15, 64, 30, 4); ctx.fill();
+    ctx.fillStyle = '#FFFFFF'; ctx.fillRect(x - 28, y + 3, 56, 9);
+    ctx.fillStyle = '#2E2A28'; for (let i = 0; i < 13; i++) if (i % 7 !== 2 && i % 7 !== 6) ctx.fillRect(x - 25 + i * 4.2, y + 3, 2.2, 5.5);
+    ctx.fillStyle = '#8C6B47'; ctx.fillRect(x - 10, y - 11, 20, 6);
+  }
+  ctx.restore();
+}
+function drawPlaced() {
+  for (const q of placed) drawElement(q.key, q.x, q.y, q);
+  if (placing && hoverPt) {
+    const bad = !!placeError(placing, hoverPt), d = ELEMENTS[placing];
+    ctx.save(); ctx.globalAlpha = 0.55; drawElement(placing, hoverPt.x, hoverPt.y, null); ctx.restore();
+    ctx.save(); ctx.strokeStyle = bad ? '#C8463A' : T.accent; ctx.lineWidth = 2; ctx.setLineDash([4, 3]);
+    ctx.strokeRect(hoverPt.x - d.w / 2 - 5, hoverPt.y - d.h / 2 - 5, d.w + 10, d.h + 10); ctx.restore();
+  }
+}
 const SUPPORTS = [
   { k: 'labels', name: 'Labels and landmarks', desc: 'Clear signs on cupboards and stations. Spatial guesses are 60% closer, left-side misses drop 40%, goal-forgetting drops 30%.' },
   { k: 'checklist', name: 'Step-by-step checklist', desc: 'A written routine for each job. Planning slips drop 70%, memory slips drop 40%.' },
@@ -334,7 +511,7 @@ let pairCD = {}, logFilter = 'all';
 const supports = { labels: false, checklist: false, quiet: false, clear: false, tools: false };
 const world = { tea: 0, notes: 0, books: 0, mail: 0, plantT: -99 };
 let OBS = [], gridCache = {};
-function rebuildObs() { OBS = FIXED.concat(supports.clear ? [] : CLUTTER); gridCache = {}; }
+function rebuildObs() { OBS = FIXED.concat(supports.clear ? [] : CLUTTER, placed.filter(q => q.rect).map(q => q.rect)); gridCache = {}; }
 rebuildObs();
 
 const blank = () => ({ spatial: 0, field: 0, motor: 0, attention: 0, language: 0, planning: 0, memory: 0 });
@@ -729,9 +906,9 @@ function attentionCheck(a, dt) {
   for (const sp of SPEECH) {
     if (sp.t <= a.seenSpeech || sp.by === a.id) continue;
     a.seenSpeech = sp.t;
-    if (!src && Math.hypot(sp.x - a.x, sp.y - a.y) < 280 && rnd() < A * 0.4) src = { x: sp.x, y: sp.y, label: `${sp.name}'s voice` };
+    if (!src && Math.hypot(sp.x - a.x, sp.y - a.y) < 280 && rnd() < A * 0.4) src = { x: sp.x, y: sp.y, label: sp.label || `${sp.name}'s voice` };
   }
-  if (!src && rnd() < A * 0.08 * dt) src = pick(POIS.filter(p => Math.hypot(p.x - a.x, p.y - a.y) > 80));
+  if (!src && rnd() < A * 0.08 * dt) src = pick(POIS.concat(placed.map(q => ({ x: q.x, y: q.y, label: `the ${q.def.name.toLowerCase()}` }))).filter(p => Math.hypot(p.x - a.x, p.y - a.y) > 80));
   if (!src) return false;
   distract(a, src); return true;
 }
@@ -766,6 +943,8 @@ function startHelping(b, a, st) {
 
 // ---------- Conversation ----------
 function startConvo(a, b, kind, extra = {}) {
+  const topic = kind === 'help' ? null : topicNear(a, b);
+  if (topic) kind = 'element';
   for (const x of [a, b]) { release(x); x.state = 'talking'; x.convoWith = x === a ? b : a; x.talkCD = 10 + rnd() * 8; }
   const lines = []; let t = 0.3 + a.imp.language * 1.0;
   const add = (fn, gap) => { lines.push({ at: t, fn }); t += gap; };
@@ -774,13 +953,15 @@ function startConvo(a, b, kind, extra = {}) {
   const unseen = vx * dy - vy * dx < 0 && rnd() < effField(b) * 0.8;
   const ignores = unseen || rnd() < effAttention(b) * 0.5;
   const misread = !ignores && rnd() < b.imp.language * 0.55;
-  if (kind === 'greet') add(() => say(a, pick(LINES.greet), { name: nameFor(a, b) }), replyGap);
+  if (kind === 'element') add(() => say(a, topic.q, { name: nameFor(a, b), other: topic.other }), replyGap);
+  else if (kind === 'greet') add(() => say(a, pick(LINES.greet), { name: nameFor(a, b) }), replyGap);
   else if (kind === 'ask') add(() => say(a, pick(LINES.ask), { name: nameFor(a, b) }), replyGap);
   else if (kind === 'comment') add(() => say(a, pick(LINES.comment)), replyGap);
   else add(() => say(a, pick(LINES.helpAsk), { name: b.name, st: extra.st.label }), replyGap);
   let helped = false;
   if (ignores) add(() => { if (unseen) ev(b, 'field', `didn't notice ${a.name}, who was talking to them from their left`); else ev(b, 'attention', `didn't notice ${a.name} talking to them`); say(a, pick(LINES.ignored)); }, 1.6);
   else if (misread) add(() => { ev(b, 'language', `misunderstood what ${a.name} said`); say(b, pick(LINES.offtopic)); }, 1.8);
+  else if (kind === 'element') add(() => say(b, topic.r, { name: a.name, other: topic.other }), 1.8);
   else if (kind === 'greet') add(() => say(b, pick(LINES.greetBack), { name: nameFor(b, a) }), 1.8);
   else if (kind === 'ask') {
     add(() => {
@@ -962,6 +1143,7 @@ function tick(dt) {
       startConvo(s, l, pick(['greet', 'greet', 'ask', 'comment']));
     }
   }
+  elementTick(dt);
   while (SPEECH.length && SPEECH[0].t < simT - 3) SPEECH.shift();
 }
 
@@ -1256,6 +1438,7 @@ function drawBubble(a) {
 function draw() {
   ctx.setTransform(dpr * scale, 0, 0, dpr * scale, 0, 0);
   drawRoom();
+  drawPlaced();
   const showPaths = false, showOv = false, s = sel();
   if (showPaths) agents.forEach(drawPath);
   if (showOv && s && !hidden(s)) { if (!showPaths) drawPath(s); drawOverlay(s); }
@@ -1471,6 +1654,7 @@ function choosePart(part) {
     const p = ptsFor(G.tries2); G.pts += p; G.score += p;
     G.step = 3; game.solved = true;
     $('#brainView').innerHTML = brainSVG(c.region, true);
+    if (popFor && !$('#brainPop').hidden) showBrain(popFor);
   } else {
     G.miss.add(part);
     const el = $('#brainView').querySelector(`[data-part="${part}"]`); if (el) el.classList.add('miss');
@@ -1519,12 +1703,13 @@ function render() {
     html += `<p class="eyebrow">Case ${G.round} solved · +${G.pts} point${G.pts === 1 ? '' : 's'}</p><h2>${esc(r.name)}</h2><p>${esc(r.role)}</p>` +
       `<h3>Clues ${nm} gave</h3><ul>${clues.length ? clues.map(e => `<li>${e.kind === 'say' ? `said “${esc(e.text)}”` : esc(e.text)}</li>`).join('') : `<li>${esc(r.signs)}</li>`}</ul>` +
       `<h3>Good to know</h3><p style="font-size:13px;color:var(--muted)">${esc(r.note)}${G.key === 'motor' ? ' Choosing the motor cortex also counts.' : ''}</p>` +
-      `<div class="row"><button class="btn primary" type="button" id="nextBtn">Next case</button></div>`;
+      `<div class="row"><button class="btn primary" type="button" id="nextBtn">Next case</button><button class="btn" type="button" id="roomBtn">${$('#roomView').hidden ? 'Back to the room' : 'Show the brain again'}</button></div>`;
   }
   const panel = $('#panel'); panel.innerHTML = html;
   panel.querySelectorAll('[data-choice]').forEach(b => b.addEventListener('click', () => chooseDifficulty(b.dataset.choice)));
   const on = (id, fn) => { const el = panel.querySelector('#' + id); if (el) el.addEventListener('click', fn); };
   on('nextBtn', newCase); on('skipBtn', newCase);
+  on('roomBtn', () => { const show = $('#roomView').hidden; $('#roomView').hidden = !show; $('#brainView').hidden = show; running = show; if (show) setHint(`Click ${a ? a.name : 'the person'} to see their brain with the affected area marked.`); render(); });
   on('hintBtn', () => { const e = latestClue(a); G.msg = e ? `Clue: ${nm} ${e.kind === 'say' ? `said “${esc(e.text)}”` : esc(e.text)}.` : `Nothing yet. Give ${nm} a few more seconds.`; G.msgKind = ''; render(); });
   on('hint2Btn', () => { G.msg = `Hint: ${esc(c.hint)}`; G.msgKind = ''; render(); });
 }
@@ -1534,6 +1719,76 @@ function refreshStatus() {
   const team = T ? ` <span class="muted">· Team job${p ? ` with ${esc(p.name)}` : ''}: ${esc(T.def.name)}, ${T.def.steps.filter(st => T.done.has(st.verb)).length} of ${T.def.steps.length} steps done</span>` : '';
   $('#status').innerHTML = `<span class="dot" style="background:${a.color}"></span><span><b>${esc(a.name)}</b>: ${esc(describe(a))}${team}</span>`;
 }
+// ---------- Adding things to the room ----------
+let placing = null, hoverPt = null;
+const DEFAULT_HINT = 'Pick something, then click a free spot on the floor. People nearby will notice it and talk about it. Click a thing you added to remove it.';
+const addBtns = $('#addBtns');
+addBtns.innerHTML = Object.entries(ELEMENTS).map(([k, d]) => `<button type="button" class="btn el-btn" data-el="${k}" aria-pressed="false"><span aria-hidden="true">${d.icon}</span> ${d.name}</button>`).join('');
+const setHint = t => { $('#addHint').textContent = t; };
+function setPlacing(k) {
+  placing = placing === k ? null : k;
+  addBtns.querySelectorAll('[data-el]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.el === placing)));
+  canvas.classList.toggle('placing', !!placing);
+  setHint(placing ? `Click a free spot on the floor to place the ${ELEMENTS[placing].name.toLowerCase()}. Press Esc to cancel.` : DEFAULT_HINT);
+}
+addBtns.querySelectorAll('[data-el]').forEach(b => b.addEventListener('click', () => setPlacing(b.dataset.el)));
+const toWorld = e => { const r = canvas.getBoundingClientRect(); return { x: (e.clientX - r.left) / r.width * W, y: (e.clientY - r.top) / r.height * H }; };
+canvas.addEventListener('pointermove', e => { hoverPt = placing ? toWorld(e) : null; });
+canvas.addEventListener('pointerleave', () => { hoverPt = null; });
+canvas.addEventListener('click', e => {
+  const pt = toWorld(e);
+  if (placing) {
+    const err = placeError(placing, pt);
+    if (err) { setHint(err); return; }
+    const name = ELEMENTS[placing].name.toLowerCase();
+    addElement(placing, pt.x, pt.y); setPlacing(null); setHint(`Added the ${name}. Watch what people say about it.`);
+    return;
+  }
+  let who = null, bd = 26;
+  for (const a of agents) { const d = Math.hypot(a.x - pt.x, a.y - 14 - pt.y); if (d < bd) { bd = d; who = a; } }
+  if (who) { showBrain(who); return; }
+  const hit = placed.find(q => Math.abs(q.x - pt.x) < q.def.w / 2 + 8 && Math.abs(q.y - 6 - pt.y) < q.def.h / 2 + 14);
+  if (hit) { removeElement(hit); setHint(`Removed the ${hit.def.name.toLowerCase()}.`); }
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && placing) setPlacing(null); });
+$('#clearEl').addEventListener('click', () => { placed.slice().forEach(removeElement); setHint('Cleared everything you added.'); });
+setHint(DEFAULT_HINT);
+
+// ---------- Click a person to see their brain ----------
+let popFor = null;
+function regionKeysFor(a) {
+  return IMPS.filter(i => a.imp[i.k] > 0.02).sort((x, y) => a.imp[y.k] - a.imp[x.k])
+    .map(i => Object.keys(REGIONS).find(k => REGIONS[k].imp === i.k)).filter(Boolean);
+}
+function markerSVG(svg, keys) {
+  const pts = keys.flatMap(k => [REGIONS[k].anchor, REGIONS[k].anchor2].filter(Boolean));
+  const marks = pts.map(([x, y]) => `<g class="mk" transform="translate(${x} ${y})"><circle r="24" class="mk-ring"/><circle r="14" class="mk-dot"/><text y="6" text-anchor="middle" class="mk-sym">!</text></g>`).join('');
+  return svg.replace(/<\/svg>$/, marks + '</svg>');
+}
+function showBrain(a) {
+  popFor = a;
+  const hiddenCase = game.active && !game.solved && a.id === game.caseId;
+  const keys = regionKeysFor(a);
+  let art, text;
+  if (hiddenCase) {
+    art = brainSVG(null, true).replace(/<\/svg>$/, '<text x="300" y="215" text-anchor="middle" class="mk-q">?</text></svg>');
+    text = `<p>${esc(a.name)}’s difficulty is hidden. Watch what ${esc(a.name)} does, answer the questions, and the affected area will be marked here once the case is solved.</p>`;
+  } else if (!keys.length) {
+    art = brainSVG(null, true);
+    text = `<p>No areas are marked. In this simulation ${esc(a.name)} has no difficulties, so every part of the brain is working as usual.</p>`;
+  } else {
+    art = markerSVG(brainSVG(keys[0], true), keys);
+    const r = REGIONS[keys[0]], c = CASES[r.imp];
+    text = `<p>The marked area is the <b>${esc(keys.map(k => REGIONS[k].name).join(' and the '))}</b>. ${esc(r.role)}</p><p class="pop-note">${esc(a.name)} has trouble with ${esc((c ? c.label : r.short).toLowerCase())}. ${esc(r.signs)}</p>`;
+  }
+  $('#popTitle').textContent = `${a.name}’s brain`;
+  $('#popArt').innerHTML = art; $('#popText').innerHTML = text;
+  $('#brainPop').hidden = false; $('#popClose').focus();
+}
+function closeBrain() { $('#brainPop').hidden = true; popFor = null; canvas.focus(); }
+$('#popClose').addEventListener('click', closeBrain);
+$('#brainPop').addEventListener('click', e => { if (e.target.id === 'brainPop') closeBrain(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('#brainPop').hidden) closeBrain(); });
 $('#speedBtn').addEventListener('click', () => { speed = speed === 1 ? 2 : speed === 2 ? 4 : 1; $('#speedBtn').textContent = `Speed ${speed}×`; });
 
 newCase();

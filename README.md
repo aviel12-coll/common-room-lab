@@ -21,6 +21,8 @@ The page also has room supports (labels, a checklist, a quiet room, clear walkwa
   The person to watch does every job as a team with Ada. They share one list of steps and each takes the next step that is ready. When one partner gets stuck (forgets, gets distracted, fumbles, can't find something or gives up), they let go of that step and the other one takes it over, so the job still gets finished. A dotted line links the two partners.
 
   A correct answer shows the area glowing and labelled, with the clues the person gave. Each step scores 2 points on the first try and 1 on the second.
+  - **Add things to the room:** a TV, radio, cat, birthday cake, fish tank, flowers or piano. Pick one and click a free spot on the floor. People nearby react, and conversations near it turn to it ("Whose birthday is it?"). The TV and radio make noise that distracts people with attention difficulties, and the cat wanders around. Click a thing you added to remove it.
+  - **Click a person to see their brain.** The affected area is marked with a pulsing red symbol. People without difficulties show no marks; the person to watch stays hidden ("?") until you solve the case. After solving, use "Back to the room" to click them.
 - **`lab.html`: the full lab.** Set every person's difficulties with sliders, add room supports, and read the event log and scoreboard.
 
 | Difficulty | Brain area in the game |
