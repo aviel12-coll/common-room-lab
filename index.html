@@ -284,11 +284,11 @@ const POIS = [
 // ---------- Things the user can add to the room ----------
 // Each one becomes a conversation topic for people near it; some make noise or move.
 const ELEMENTS = {
-  tv: { name: 'TV', icon: '📺', w: 46, h: 22, block: true, noise: true,
+  tv: { name: 'TV', icon: '📺', w: 46, h: 22, block: true, onTable: true, noise: true,
     wow: ['Oh nice, a TV!', 'Now we can watch the match.'],
     solo: ['Ooh, the news is on.', 'Is that the weather forecast?'],
     talk: [["Did you watch the match last night, {name}?", 'I did! What a last-minute goal.'], ['Can we turn the TV down a bit?', 'Sure, it is a bit loud.'], ["What's on TV, {name}?", 'Just the weather. Rain again.']] },
-  radio: { name: 'Radio', icon: '📻', w: 30, h: 20, block: true, noise: true,
+  radio: { name: 'Radio', icon: '📻', w: 30, h: 20, block: true, onTable: true, noise: true,
     wow: ['Music! Lovely.', 'Who brought a radio?'],
     solo: ['La la la…', 'This song again!'],
     talk: [['I love this song!', 'Me too. Turn it up a little?'], ['Who sings this, {name}?', "No idea, but it's catchy."]] },
@@ -296,15 +296,15 @@ const ELEMENTS = {
     wow: ['A cat! Where did you come from?', 'Aww, look at the cat.'],
     solo: ['Hello, kitty!', "Careful, don't step on the cat."],
     talk: [['Whose cat is this, {name}?', "She just wandered in. Isn't she sweet?"], ['The cat keeps following {other}.', 'Ha, she must like them.'], ['Has anyone fed the cat?', 'I gave her some milk.']] },
-  cake: { name: 'Birthday cake', icon: '🎂', w: 40, h: 40, block: true,
+  cake: { name: 'Birthday cake', icon: '🎂', w: 40, h: 40, block: true, onTable: true,
     wow: ["Ooh, cake! Is it someone's birthday?", 'Birthday cake!'],
     solo: ['Mmm, cake.', "Don't blow out the candles yet!"],
     talk: [['Whose birthday is it?', "It's {other}'s! Don't tell them."], ['Can I have a slice of cake, {name}?', 'After we sing happy birthday!'], ['Who baked the cake?', '{other} did. Chocolate inside!']] },
-  fish: { name: 'Fish tank', icon: '🐠', w: 54, h: 26, block: true,
+  fish: { name: 'Fish tank', icon: '🐠', w: 54, h: 26, block: true, onTable: true,
     wow: ['A fish tank! How relaxing.', 'Oh, fish!'],
     solo: ['Look at that little fish.', 'The fish look hungry.'],
     talk: [['Did someone feed the fish, {name}?', 'Yes, this morning.'], ['I like the little orange fish.', "That one's called Bubbles."]] },
-  flowers: { name: 'Flowers', icon: '💐', w: 24, h: 24, block: true,
+  flowers: { name: 'Flowers', icon: '💐', w: 24, h: 24, block: true, onTable: true,
     wow: ['Fresh flowers! Lovely.', 'Who brought flowers?'],
     solo: ['Pretty flowers.', 'Mmm, they smell nice.'],
     talk: [['These flowers smell lovely.', "They're from {other}'s garden."], ['Should we water the flowers too, {name}?', 'Good idea, after the plant.']] },
@@ -314,18 +314,32 @@ const ELEMENTS = {
     talk: [['Can you play the piano, {name}?', 'Only one song, and badly!'], ["Let's sing something later.", 'Only if {other} plays.']] }
 };
 const placed = [], sayQueue = [];
+const SURFACES = FIXED.filter(o => o.id === 'table' || o.id === 'coffee');
+function surfaceAt(pt, d) {
+  const s = SURFACES.find(o => pt.x > o.x && pt.x < o.x + o.w && pt.y > o.y && pt.y < o.y + o.h);
+  if (!s) return null;
+  const fits = d && pt.x - d.w / 2 >= s.x + 3 && pt.x + d.w / 2 <= s.x + s.w - 3 && pt.y - d.h / 2 >= s.y + 3 && pt.y + d.h / 2 <= s.y + s.h - 3;
+  return { s, fits };
+}
 let elN = 1;
 function placeError(key, pt) {
   const d = ELEMENTS[key];
   if (placed.length >= 8) return 'You can add up to 8 things. Click one in the room to remove it.';
+  const on = surfaceAt(pt, d);
+  if (on) {
+    if (!d.onTable) return `The ${d.name.toLowerCase()} can't go on the ${on.s.label}. Put it on the floor.`;
+    if (!on.fits) return `The ${d.name.toLowerCase()} doesn't fit there. Move it further onto the ${on.s.label}.`;
+    if (placed.some(q => Math.abs(q.x - pt.x) < (q.def.w + d.w) / 2 + 4 && Math.abs(q.y - pt.y) < (q.def.h + d.h) / 2 + 22)) return `Too close to something already on the ${on.s.label}.`;
+    return null;
+  }
   if (blockedAt(pt.x, pt.y, Math.max(d.w, d.h) / 2 + 4)) return 'That spot is taken. Try an open part of the floor.';
   for (const k in STATIONS) if (Math.hypot(STATIONS[k].x - pt.x, STATIONS[k].y - pt.y) < 46) return `Leave the space in front of the ${STATIONS[k].label} free.`;
   if (placed.some(q => Math.hypot(q.x - pt.x, q.y - pt.y) < 50)) return 'Too close to something you already added.';
   return null;
 }
 function addElement(key, x, y) {
-  const def = ELEMENTS[key], q = { id: 'el' + elN++, key, def, x, y, t: simT, nextNoise: simT + 2, tx: x, ty: y, pause: 1, vx: 1 };
-  if (def.block) q.rect = { id: q.id, x: x - def.w / 2, y: y - def.h / 2, w: def.w, h: def.h, label: def.name.toLowerCase() };
+  const def = ELEMENTS[key], on = surfaceAt({ x, y }, def), q = { id: 'el' + elN++, key, def, x, y, t: simT, nextNoise: simT + 2, tx: x, ty: y, pause: 1, vx: 1, surface: on ? on.s.id : null };
+  if (def.block && !q.surface) q.rect = { id: q.id, x: x - def.w / 2, y: y - def.h / 2, w: def.w, h: def.h, label: def.name.toLowerCase() };
   placed.push(q); refreshObstacles();
   log(null, 'support', `${def.name} added to the room`);
   const near = agents.filter(a => !['talking', 'acting'].includes(a.state)).sort((m, n) => Math.hypot(m.x - x, m.y - y) - Math.hypot(n.x - x, n.y - y)).slice(0, 2);
@@ -361,7 +375,7 @@ function elementTick(dt) {
     for (const q of placed) if (Math.hypot(q.x - a.x, q.y - a.y) < 85 && rnd() < 0.5 * dt) { a.remarkCD = simT + 30 + rnd() * 15; say(a, pick(q.def.solo)); break; }
   }
 }
-function drawElement(key, x, y, q) {
+function drawElement(key, x, y, q, onSurface) {
   const t = simT;
   ctx.save(); ctx.lineCap = 'round'; ctx.lineJoin = 'round';
   if (key === 'tv') {
@@ -386,7 +400,7 @@ function drawElement(key, x, y, q) {
     ctx.beginPath(); ctx.moveTo(x + 6.5 * dir, y - 15); ctx.lineTo(x + 7 * dir, y - 21); ctx.lineTo(x + 10 * dir, y - 17); ctx.moveTo(x + 11 * dir, y - 17); ctx.lineTo(x + 14 * dir, y - 21); ctx.lineTo(x + 14.5 * dir, y - 15); ctx.fill();
     ctx.fillStyle = '#1E1A18'; ctx.beginPath(); ctx.arc(x + 12 * dir, y - 12.5, 1, 0, 7); ctx.fill();
   } else if (key === 'cake') {
-    ctx.fillStyle = T.furn; ctx.strokeStyle = T['furn-line']; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(x, y, 20, 0, 7); ctx.fill(); ctx.stroke();
+    if (!onSurface) { ctx.fillStyle = T.furn; ctx.strokeStyle = T['furn-line']; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(x, y, 20, 0, 7); ctx.fill(); ctx.stroke(); }
     ctx.fillStyle = '#F4C6D4'; ctx.strokeStyle = '#C9839A'; ctx.beginPath(); ctx.arc(x, y, 12, 0, 7); ctx.fill(); ctx.stroke();
     ctx.fillStyle = '#FBE3EA'; ctx.beginPath(); ctx.arc(x, y, 7, 0, 7); ctx.fill();
     for (let i = 0; i < 4; i++) { const an = i / 4 * Math.PI * 2 + 0.4, cx = x + Math.cos(an) * 8, cy = y + Math.sin(an) * 8; ctx.fillStyle = '#5B8FD6'; ctx.fillRect(cx - 1, cy - 5, 2, 5); ctx.fillStyle = '#FFC23D'; ctx.beginPath(); ctx.ellipse(cx, cy - 7 + Math.sin(t * 9 + i) * 0.6, 1.6, 2.6, 0, 0, 7); ctx.fill(); }
@@ -414,10 +428,10 @@ function drawElement(key, x, y, q) {
   ctx.restore();
 }
 function drawPlaced() {
-  for (const q of placed) drawElement(q.key, q.x, q.y, q);
+  for (const q of placed) drawElement(q.key, q.x, q.y, q, !!q.surface);
   if (placing && hoverPt) {
     const bad = !!placeError(placing, hoverPt), d = ELEMENTS[placing];
-    ctx.save(); ctx.globalAlpha = 0.55; drawElement(placing, hoverPt.x, hoverPt.y, null); ctx.restore();
+    ctx.save(); ctx.globalAlpha = 0.55; drawElement(placing, hoverPt.x, hoverPt.y, null, !!surfaceAt(hoverPt, d)); ctx.restore();
     ctx.save(); ctx.strokeStyle = bad ? '#C8463A' : T.accent; ctx.lineWidth = 2; ctx.setLineDash([4, 3]);
     ctx.strokeRect(hoverPt.x - d.w / 2 - 5, hoverPt.y - d.h / 2 - 5, d.w + 10, d.h + 10); ctx.restore();
   }
@@ -1721,7 +1735,7 @@ function refreshStatus() {
 }
 // ---------- Adding things to the room ----------
 let placing = null, hoverPt = null;
-const DEFAULT_HINT = 'Pick something, then click a free spot on the floor. People nearby will notice it and talk about it. Click a thing you added to remove it.';
+const DEFAULT_HINT = 'Pick something, then click a free spot on the floor or on a table. People nearby will notice it and talk about it. Click a thing you added to remove it.';
 const addBtns = $('#addBtns');
 addBtns.innerHTML = Object.entries(ELEMENTS).map(([k, d]) => `<button type="button" class="btn el-btn" data-el="${k}" aria-pressed="false"><span aria-hidden="true">${d.icon}</span> ${d.name}</button>`).join('');
 const setHint = t => { $('#addHint').textContent = t; };
@@ -1729,7 +1743,7 @@ function setPlacing(k) {
   placing = placing === k ? null : k;
   addBtns.querySelectorAll('[data-el]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.el === placing)));
   canvas.classList.toggle('placing', !!placing);
-  setHint(placing ? `Click a free spot on the floor to place the ${ELEMENTS[placing].name.toLowerCase()}. Press Esc to cancel.` : DEFAULT_HINT);
+  setHint(placing ? `Click a free spot on the floor${ELEMENTS[placing].onTable ? ' or on a table' : ''} to place the ${ELEMENTS[placing].name.toLowerCase()}. Press Esc to cancel.` : DEFAULT_HINT);
 }
 addBtns.querySelectorAll('[data-el]').forEach(b => b.addEventListener('click', () => setPlacing(b.dataset.el)));
 const toWorld = e => { const r = canvas.getBoundingClientRect(); return { x: (e.clientX - r.left) / r.width * W, y: (e.clientY - r.top) / r.height * H }; };
